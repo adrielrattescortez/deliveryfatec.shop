@@ -22,7 +22,7 @@ const FeaturedItems: React.FC<FeaturedItemsProps> = ({ title, items }) => {
     <div className="px-4 py-6">
       <h2 className="text-xl font-bold mb-4">{title}</h2>
       
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {items.map(item => (
           <MenuItem key={item.id} item={item} featured />
         ))}
