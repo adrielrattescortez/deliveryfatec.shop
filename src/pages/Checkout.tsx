@@ -38,7 +38,7 @@ const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { currentUser } = useUser();
   const { storeInfo } = useStore();
-  const [paymentMethod, setPaymentMethod] = useState('pix');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit_card' | 'pix'>('pix');
   
   // Redirecionar se o carrinho estiver vazio
   if (cartItems.length === 0) {
@@ -56,11 +56,11 @@ const Checkout = () => {
     city: currentUser.address?.city || '',
     state: currentUser.address?.state || '',
     zipCode: currentUser.address?.zipCode || '',
-    paymentMethod: 'pix',
+    paymentMethod: 'pix' as const,
     change: '',
     notes: '',
   } : {
-    paymentMethod: 'pix',
+    paymentMethod: 'pix' as const,
   };
   
   const form = useForm<FormData>({
