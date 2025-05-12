@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
@@ -17,9 +18,10 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const Login = () => {
+const AdminLogin = () => {
   const navigate = useNavigate();
   const { login } = useUser();
+  const [showPassword, setShowPassword] = useState(false);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -30,37 +32,28 @@ const Login = () => {
   });
   
   const onSubmit = (data: FormData) => {
-    // Apenas para usuários normais, administradores usam o login específico
-    if (data.email === 'cliente@example.com' && data.password === 'cliente123') {
+    // Verificar se é um administrador
+    if (data.email === 'admin@example.com' && data.password === 'admin123') {
       login({
-        id: '2',
-        name: 'Cliente',
+        id: '1',
+        name: 'Administrador',
         email: data.email,
-        role: 'customer',
-        address: {
-          street: 'Rua das Flores',
-          number: '123',
-          neighborhood: 'Centro',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '01001-000',
-        },
-        phone: '11999998888',
+        role: 'admin',
       });
-      navigate('/customer');
-      toast.success('Login realizado com sucesso!');
+      navigate('/admin');
+      toast.success('Login de administrador realizado com sucesso!');
     } else {
-      toast.error('Email ou senha inválidos');
+      toast.error('Credenciais de administrador inválidas');
     }
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Entrar</h1>
+          <h1 className="text-3xl font-bold">Área do Administrador</h1>
           <p className="mt-2 text-gray-600">
-            Acesse sua conta para continuar
+            Acesse o painel de controle
           </p>
         </div>
         
@@ -72,11 +65,11 @@ const Login = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Email de Administrador</FormLabel>
                     <FormControl>
                       <Input 
                         type="email" 
-                        placeholder="seu@email.com" 
+                        placeholder="admin@exemplo.com" 
                         {...field} 
                       />
                     </FormControl>
@@ -92,11 +85,20 @@ const Login = () => {
                   <FormItem>
                     <FormLabel>Senha</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="******" 
-                        {...field} 
-                      />
+                      <div className="relative">
+                        <Input 
+                          type={showPassword ? "text" : "password"}
+                          placeholder="******" 
+                          {...field} 
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,31 +107,16 @@ const Login = () => {
               
               <div className="pt-2">
                 <Button type="submit" className="w-full" size="lg">
-                  Entrar como Cliente
+                  Entrar como Administrador
                 </Button>
               </div>
             </form>
           </Form>
           
-          <div className="mt-6 text-center text-sm">
-            <p>
-              Ainda não tem uma conta?{' '}
-              <Link to="/register" className="text-primary font-semibold hover:underline">
-                Registre-se
-              </Link>
-            </p>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <Link to="/admin-login" className="text-primary text-sm font-semibold hover:underline">
-              Entrar como Administrador
-            </Link>
-          </div>
-          
           <div className="mt-8 border-t pt-6">
             <p className="text-sm text-gray-500 text-center">
               Para fins de demonstração:<br />
-              Cliente: cliente@example.com / cliente123
+              Admin: admin@example.com / admin123
             </p>
           </div>
         </div>
@@ -138,4 +125,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;
