@@ -190,7 +190,7 @@ const ProductDetail = () => {
               ) : (
                 <RadioGroup 
                   value={selectedOptions[option.id]?.[0] || ""}
-                  onChange={(e) => handleRadioChange(option.id, e.target.value)}
+                  onValueChange={(value: string) => handleRadioChange(option.id, value)}
                   className="space-y-3"
                 >
                   {option.variations.map(variation => (
