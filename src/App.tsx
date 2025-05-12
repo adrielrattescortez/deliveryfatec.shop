@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,49 +26,52 @@ import { StoreProvider } from "./contexts/StoreContext";
 import AdminRoute from "./components/AdminRoute";
 import CustomerRoute from "./components/CustomerRoute";
 
+// Initialize QueryClient outside of the component
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <UserProvider>
-        <StoreProvider>
-          <CartProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                
-                {/* Rotas do cliente */}
-                <Route path="/customer" element={<CustomerRoute />}>
-                  <Route path="" element={<CustomerAccount />} />
-                  <Route path="orders" element={<CustomerOrders />} />
-                  <Route path="profile" element={<CustomerProfile />} />
-                </Route>
-                
-                {/* Rotas do administrador */}
-                <Route path="/admin" element={<AdminRoute />}>
-                  <Route path="" element={<AdminDashboard />} />
-                  <Route path="products" element={<AdminProducts />} />
-                  <Route path="categories" element={<AdminCategories />} />
-                  <Route path="orders" element={<AdminOrders />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                </Route>
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </CartProvider>
-        </StoreProvider>
-      </UserProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <UserProvider>
+          <StoreProvider>
+            <CartProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  
+                  {/* Rotas do cliente */}
+                  <Route path="/customer" element={<CustomerRoute />}>
+                    <Route path="" element={<CustomerAccount />} />
+                    <Route path="orders" element={<CustomerOrders />} />
+                    <Route path="profile" element={<CustomerProfile />} />
+                  </Route>
+                  
+                  {/* Rotas do administrador */}
+                  <Route path="/admin" element={<AdminRoute />}>
+                    <Route path="" element={<AdminDashboard />} />
+                    <Route path="products" element={<AdminProducts />} />
+                    <Route path="categories" element={<AdminCategories />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="settings" element={<AdminSettings />} />
+                  </Route>
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </CartProvider>
+          </StoreProvider>
+        </UserProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
 
 export default App;
