@@ -1,18 +1,23 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Minus, Plus } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Header from '@/components/Header';
+import CartIcon from '@/components/CartIcon';
 import { FOOD_ITEMS } from './Index';
 import { ProductOption } from '@/types/product';
+import { useCart } from '@/contexts/CartContext';
+import { useStore } from '@/contexts/StoreContext';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { storeInfo } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
   
@@ -22,7 +27,7 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <div className="min-h-screen bg-white">
-        <Header restaurantName="Produto não encontrado" showSearch={false} />
+        <Header restaurantName={storeInfo.name} showSearch={false} />
         <div className="p-4 text-center">
           <p>Produto não encontrado</p>
           <Button onClick={() => navigate('/')} className="mt-4">
@@ -102,6 +107,21 @@ const ProductDetail = () => {
     
     return total * quantity;
   };
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: `${product.id}-${Date.now()}`,
+      productId: product.id,
+      name: product.name,
+      price: calculateTotalPrice() / quantity, // preço unitário com opções
+      quantity: quantity,
+      image: product.image,
+      selectedOptions: selectedOptions,
+      totalPrice: calculateTotalPrice(),
+    });
+    
+    navigate('/cart');
+  };
   
   const isButtonDisabled = productOptions.some(option => {
     return option.required && (!selectedOptions[option.id] || selectedOptions[option.id].length === 0);
@@ -110,8 +130,9 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Header 
-        restaurantName="Casa da Esfiha - Culinária Árabe"
+        restaurantName={storeInfo.name}
         showSearch={false}
+        rightContent={<CartIcon />}
       />
       
       <div className="relative">
@@ -234,9 +255,11 @@ const ProductDetail = () => {
         </div>
         
         <Button 
-          className="flex-1 text-base py-6" 
+          className="flex-1 text-base py-6 gap-2" 
           disabled={isButtonDisabled}
+          onClick={handleAddToCart}
         >
+          <ShoppingCart className="h-5 w-5" />
           Adicionar
           <span className="ml-1">
             R$ {calculateTotalPrice().toFixed(2)}

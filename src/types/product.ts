@@ -13,3 +13,42 @@ export type ProductOption = {
   maxOptions?: number;
   variations: ProductVariation[];
 };
+
+export type CartItem = {
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  selectedOptions: Record<string, string[]>;
+  totalPrice: number;
+};
+
+export type UserRole = 'customer' | 'admin';
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  address?: {
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  phone?: string;
+};
+
+export type StoreInfo = {
+  name: string;
+  description?: string;
+  logo: string;
+  banner: string;
+  deliveryFee: number;
+  minOrder: number;
+  cuisineType: string;
+};

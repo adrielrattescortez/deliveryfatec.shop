@@ -1,43 +1,65 @@
 
-import React from 'react';
-import { ArrowLeft, Search } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, User } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Link } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import CartIcon from './CartIcon';
 
-type HeaderProps = {
-  restaurantName?: string;
+interface HeaderProps {
+  restaurantName: string;
   showSearch?: boolean;
-  showBackButton?: boolean;
-};
+  rightContent?: React.ReactNode;
+}
 
-const Header: React.FC<HeaderProps> = ({ 
-  restaurantName, 
-  showSearch = true, 
-  showBackButton = true 
-}) => {
+const Header = ({ restaurantName, showSearch = false, rightContent }: HeaderProps) => {
+  const [searchVisible, setSearchVisible] = useState(false);
+  const { currentUser } = useUser();
+
+  const toggleSearch = () => {
+    setSearchVisible(!searchVisible);
+  };
+
   return (
-    <div className="sticky top-0 z-10 bg-white px-4 py-3">
-      <div className="flex items-center gap-3">
-        {showBackButton && (
-          <button className="p-2 rounded-full bg-gray-100">
-            <ArrowLeft size={20} className="text-gray-700" />
-          </button>
-        )}
+    <header className="bg-white sticky top-0 z-50 shadow-sm">
+      <div className="container mx-auto p-4">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="text-xl font-bold text-primary">
+            {restaurantName}
+          </Link>
+          
+          <div className="flex items-center gap-4">
+            {showSearch && (
+              <button onClick={toggleSearch}>
+                <Search className="h-5 w-5" />
+              </button>
+            )}
+            
+            {rightContent || (
+              <div className="flex items-center gap-4">
+                <CartIcon />
+                
+                <Link to={currentUser ? (currentUser.role === 'admin' ? '/admin' : '/customer') : '/login'}>
+                  <User className="h-5 w-5" />
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
         
-        {showSearch ? (
-          <div className="flex-1 relative">
-            <div className="bg-gray-100 rounded-full flex items-center pl-4 pr-2 py-2">
-              <Search size={18} className="text-gray-500 mr-2" />
-              <input 
-                type="text" 
-                placeholder={`Buscar em ${restaurantName || 'Restaurantes'}`}
-                className="bg-transparent outline-none text-sm flex-1"
+        {showSearch && searchVisible && (
+          <div className="mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Pesquisar produtos..."
+                className="pl-10"
               />
             </div>
           </div>
-        ) : (
-          <h1 className="text-lg font-medium">{restaurantName}</h1>
         )}
       </div>
-    </div>
+    </header>
   );
 };
 
