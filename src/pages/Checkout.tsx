@@ -241,7 +241,7 @@ const Checkout = () => {
                     <FormItem>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={(value) => {
+                          onValueChange={(value: 'cash' | 'credit_card' | 'pix') => {
                             field.onChange(value);
                             setPaymentMethod(value);
                           }}
