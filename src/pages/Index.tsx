@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import RestaurantHero from '@/components/RestaurantHero';
@@ -9,7 +8,7 @@ import MenuItem from '@/components/MenuItem';
 import DeliveryBanner from '@/components/DeliveryBanner';
 import type { FoodItem } from '@/components/FeaturedItems';
 
-const FOOD_ITEMS: FoodItem[] = [
+export const FOOD_ITEMS: FoodItem[] = [
   {
     id: '1',
     name: 'Esfiha de Carne',
@@ -32,7 +31,7 @@ const FOOD_ITEMS: FoodItem[] = [
   }
 ];
 
-const MENU_CATEGORIES: { [key: string]: FoodItem[] } = {
+export const MENU_CATEGORIES: { [key: string]: FoodItem[] } = {
   "Combos": [
     {
       id: '4',

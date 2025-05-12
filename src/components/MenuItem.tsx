@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { FoodItem } from './FeaturedItems';
 
 type MenuItemProps = {
@@ -8,8 +9,17 @@ type MenuItemProps = {
 };
 
 const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    navigate(`/product/${item.id}`);
+  };
+  
   return (
-    <div className="flex gap-3 items-center">
+    <div 
+      className="flex gap-3 items-center hover:bg-gray-50 p-2 rounded-lg transition-colors cursor-pointer"
+      onClick={handleClick}
+    >
       <div className="flex-1">
         {featured && item.popular && (
           <div className="mb-1">
