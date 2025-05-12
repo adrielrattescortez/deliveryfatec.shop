@@ -45,7 +45,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       name: product?.name || '',
       description: product?.description || '',
       price: product?.price || 0,
-      category: 'Principais',
+      category: product?.category || categories[0] || 'Principais',
       popular: product?.popular || false,
       vegetarian: product?.vegetarian || false,
     },
@@ -64,11 +64,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
   };
   
   const handleSubmitForm = (data: FormData) => {
-    onSubmit({
+    // Make sure to preserve the original ID if editing
+    const updatedData = {
       ...data,
-      image: imagePreview
-    });
-    toast.success(`Produto ${product ? 'atualizado' : 'adicionado'} com sucesso!`);
+      image: imagePreview,
+      id: product?.id // Preserve the ID if editing
+    };
+    
+    // Log the data being submitted for debugging
+    console.log("Form submitting data:", updatedData);
+    
+    onSubmit(updatedData);
   };
   
   return (

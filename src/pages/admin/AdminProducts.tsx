@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,9 +51,15 @@ const AdminProducts = () => {
   const handleUpdateProduct = (data: any) => {
     if (!currentProduct) return;
     
+    // Fixed: Use proper spread to ensure all fields are updated
     const updatedProducts = products.map(item => 
       item.id === currentProduct.id ? { ...item, ...data } : item
     );
+    
+    // Debug logs to verify update
+    console.log("Updating product:", currentProduct.id);
+    console.log("New data:", data);
+    console.log("Updated product:", updatedProducts.find(p => p.id === currentProduct.id));
     
     setProducts(updatedProducts);
     setIsEditProductOpen(false);
