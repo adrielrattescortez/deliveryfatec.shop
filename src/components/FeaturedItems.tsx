@@ -10,6 +10,7 @@ export type FoodItem = {
   image: string;
   popular?: boolean;
   vegetarian?: boolean;
+  category?: string; // Added category field
 };
 
 type FeaturedItemsProps = {

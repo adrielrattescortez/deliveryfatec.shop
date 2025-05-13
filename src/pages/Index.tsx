@@ -15,6 +15,7 @@ export const FOOD_ITEMS: FoodItem[] = [
     price: 7.95,
     image: 'https://source.unsplash.com/featured/?arabian,meat,food',
     popular: true,
+    category: 'Destaques', // Added category
   },
   {
     id: '2',
@@ -22,16 +23,18 @@ export const FOOD_ITEMS: FoodItem[] = [
     description: 'Esfiha especial recheada com queijo mussarela de alta qualidade',
     price: 10.75,
     image: 'https://source.unsplash.com/featured/?cheese,food',
+    category: 'Destaques', // Added category
   },
   {
     id: '3',
     name: 'Esfiha de Frango',
     price: 10.75,
     image: 'https://source.unsplash.com/featured/?chicken,food',
+    category: 'Destaques', // Added category
   }
 ];
 
-export const MENU_CATEGORIES: { [key: string]: FoodItem[] } = {
+export const MENU_CATEGORIES: { [key: string]: Omit<FoodItem, 'category'>[] } = { // Omit category here, it will be added dynamically
   "Combos": [
     {
       id: '4',
@@ -96,7 +99,8 @@ export const MENU_CATEGORIES: { [key: string]: FoodItem[] } = {
 };
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<string>("Combos");
+  // ... keep existing code (useState, menuTabs)
+  const [activeTab, setActiveTab] = useState<string>(Object.keys(MENU_CATEGORIES)[0] || "Combos");
   const menuTabs = Object.keys(MENU_CATEGORIES);
   
   return (
@@ -142,8 +146,8 @@ const Index = () => {
         <div className="p-4">
           <h2 className="text-xl font-bold mb-4">{activeTab}</h2>
           <div className="space-y-4">
-            {MENU_CATEGORIES[activeTab].map(item => (
-              <MenuItem key={item.id} item={item} />
+            {MENU_CATEGORIES[activeTab] && MENU_CATEGORIES[activeTab].map(item => (
+              <MenuItem key={item.id} item={{...item, category: activeTab } as FoodItem} />
             ))}
           </div>
         </div>

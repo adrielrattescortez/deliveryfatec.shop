@@ -14,31 +14,41 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const AdminProducts = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [products, setProducts] = useState<FoodItem[]>([
-    ...FOOD_ITEMS,
-    ...(Object.values(MENU_CATEGORIES).flat())
-  ]);
+
+  // Initialize products with categories
+  const initialProducts: FoodItem[] = [
+    ...FOOD_ITEMS, // FOOD_ITEMS now have a category field
+    ...Object.entries(MENU_CATEGORIES).flatMap(([category, items]) => 
+      items.map(item => ({ ...item, category }))
+    )
+  ];
+  const [products, setProducts] = useState<FoodItem[]>(initialProducts);
+
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<FoodItem | null>(null);
   
   // Extrair todas as categorias
-  const categories = Object.keys(MENU_CATEGORIES);
+  const categories = [...new Set(initialProducts.map(p => p.category).filter(Boolean) as string[])];
+  if (!categories.includes('Destaques')) {
+    categories.unshift('Destaques'); // Ensure 'Destaques' is an option if not present
+  }
   
   // Filtrar produtos
   const filteredProducts = products.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
-  const handleAddProduct = (data: any) => {
-    const newProduct = {
+  const handleAddProduct = (data: FoodItem) => { // Changed type to FoodItem
+    const newProduct: FoodItem = { // Ensure newProduct conforms to FoodItem
+      ...data,
       id: `product-${Date.now()}`,
-      ...data
     };
     
-    setProducts([...products, newProduct]);
+    setProducts(prevProducts => [...prevProducts, newProduct]);
     setIsAddProductOpen(false);
     toast.success('Produto adicionado com sucesso!');
   };
@@ -48,15 +58,13 @@ const AdminProducts = () => {
     setIsEditProductOpen(true);
   };
   
-  const handleUpdateProduct = (data: any) => {
+  const handleUpdateProduct = (data: FoodItem) => { // Changed type to FoodItem
     if (!currentProduct) return;
     
-    // Fixed: Use proper spread to ensure all fields are updated
     const updatedProducts = products.map(item => 
       item.id === currentProduct.id ? { ...item, ...data } : item
     );
     
-    // Debug logs to verify update
     console.log("Updating product:", currentProduct.id);
     console.log("New data:", data);
     console.log("Updated product:", updatedProducts.find(p => p.id === currentProduct.id));
@@ -121,10 +129,11 @@ const AdminProducts = () => {
               <thead>
                 <tr className="border-b">
                   <th className="text-left pb-3 font-medium text-gray-500 w-8">
-                    <Checkbox />
+                    {/* <Checkbox /> Keep if you plan to implement bulk actions */}
                   </th>
                   <th className="text-left pb-3 font-medium text-gray-500">Produto</th>
-                  <th className="text-left pb-3 font-medium text-gray-500 hidden md:table-cell">Descrição</th>
+                  <th className="text-left pb-3 font-medium text-gray-500 hidden md:table-cell">Categoria</th>
+                  <th className="text-left pb-3 font-medium text-gray-500 hidden lg:table-cell">Descrição</th>
                   <th className="text-left pb-3 font-medium text-gray-500">Status</th>
                   <th className="text-left pb-3 font-medium text-gray-500">Preço</th>
                   <th className="text-right pb-3 font-medium text-gray-500">Ações</th>
@@ -134,7 +143,7 @@ const AdminProducts = () => {
                 {filteredProducts.map((product) => (
                   <tr key={product.id} className="border-b last:border-0">
                     <td className="py-4">
-                      <Checkbox />
+                      {/* <Checkbox /> Keep if you plan to implement bulk actions */}
                     </td>
                     <td className="py-4">
                       <div className="flex items-center gap-3">
@@ -151,25 +160,35 @@ const AdminProducts = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 text-gray-600 hidden md:table-cell max-w-[200px] truncate">
+                    <td className="py-4 text-gray-600 hidden md:table-cell">
+                      {product.category || 'N/A'}
+                    </td>
+                    <td className="py-4 text-gray-600 hidden lg:table-cell max-w-[200px] truncate">
                       {product.description || 'Sem descrição'}
                     </td>
                     <td className="py-4">
-                      {product.popular ? (
-                        <Badge variant="default">Popular</Badge>
-                      ) : (
-                        <Badge variant="outline">Normal</Badge>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {product.popular && (
+                          <Badge variant="default" className="text-xs">Popular</Badge>
+                        )}
+                        {product.vegetarian && (
+                           <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">Vegetariano</Badge>
+                        )}
+                        {(!product.popular && !product.vegetarian) && (
+                           <Badge variant="outline" className="text-xs">Normal</Badge>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 font-medium">
                       R$ {product.price.toFixed(2)}
                     </td>
                     <td className="py-4 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
                         <Button 
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEditProduct(product)}
+                          title="Editar produto"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -178,6 +197,8 @@ const AdminProducts = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteClick(product)}
+                          title="Remover produto"
+                          className="text-destructive hover:text-destructive"
                         >
                           <Trash className="h-4 w-4" />
                         </Button>
@@ -188,7 +209,7 @@ const AdminProducts = () => {
                 
                 {filteredProducts.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-500">
+                    <td colSpan={7} className="py-8 text-center text-gray-500">
                       Nenhum produto encontrado
                     </td>
                   </tr>
@@ -250,7 +271,7 @@ const AdminProducts = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelDelete}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProduct} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDeleteProduct} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
