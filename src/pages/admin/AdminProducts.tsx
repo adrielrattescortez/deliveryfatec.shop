@@ -1,282 +1,198 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash, Plus, Search } from 'lucide-react';
-import { FOOD_ITEMS, MENU_CATEGORIES } from '@/pages/Index';
+import { PlusCircle, Edit, Trash2, Search, PackageOpen, ImageOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import ProductForm from '@/components/admin/ProductForm';
-import { FoodItem } from '@/components/FeaturedItems';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types'; // Ajuste o caminho se necessário
+import SupabaseProductForm from '@/components/admin/SupabaseProductForm'; // Novo formulário
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+
+type ProductWithCategoryName = Tables<'products'> & {
+  categories: { name: string } | null; // Para buscar o nome da categoria
+};
 
 const AdminProducts = () => {
+  const [products, setProducts] = useState<ProductWithCategoryName[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Tables<'products'> | null>(null);
 
-  // Initialize products with categories
-  const initialProducts: FoodItem[] = [
-    ...FOOD_ITEMS, // FOOD_ITEMS now have a category field
-    ...Object.entries(MENU_CATEGORIES).flatMap(([category, items]) => 
-      items.map(item => ({ ...item, category }))
-    )
-  ];
-  const [products, setProducts] = useState<FoodItem[]>(initialProducts);
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      let query = supabase
+        .from('products')
+        .select(`
+          *,
+          categories ( name )
+        `)
+        .order('name', { ascending: true });
 
-  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
-  const [isEditProductOpen, setIsEditProductOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState<FoodItem | null>(null);
+      if (searchTerm) {
+        query = query.ilike('name', `%${searchTerm}%`);
+      }
+      
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setProducts(data as ProductWithCategoryName[] || []); // Cast aqui
+    } catch (error: any) {
+      toast.error('Falha ao buscar produtos: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [searchTerm]); // Refetch when searchTerm changes
+
+  const handleAddProduct = () => {
+    setEditingProduct(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditProduct = (product: Tables<'products'>) => {
+    setEditingProduct(product);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!window.confirm(`Tem certeza que deseja remover o produto "${productName}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+      
+      if (error) throw error;
+      
+      toast.success(`Produto "${productName}" removido.`);
+      fetchProducts(); // Refresh list
+    } catch (error: any) {
+      toast.error('Erro ao remover produto: ' + error.message);
+    }
+  };
+
+  const onFormSuccess = () => {
+    setIsFormOpen(false);
+    setEditingProduct(null);
+    fetchProducts(); // Refresh product list
+  };
   
-  // Extrair todas as categorias
-  const categories = [...new Set(initialProducts.map(p => p.category).filter(Boolean) as string[])];
-  if (!categories.includes('Destaques')) {
-    categories.unshift('Destaques'); // Ensure 'Destaques' is an option if not present
+  const onFormCancel = () => {
+    setIsFormOpen(false);
+    setEditingProduct(null);
   }
-  
-  // Filtrar produtos
-  const filteredProducts = products.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-  
-  const handleAddProduct = (data: FoodItem) => { // Changed type to FoodItem
-    const newProduct: FoodItem = { // Ensure newProduct conforms to FoodItem
-      ...data,
-      id: `product-${Date.now()}`,
-    };
-    
-    setProducts(prevProducts => [...prevProducts, newProduct]);
-    setIsAddProductOpen(false);
-    toast.success('Produto adicionado com sucesso!');
-  };
-  
-  const handleEditProduct = (product: FoodItem) => {
-    setCurrentProduct(product);
-    setIsEditProductOpen(true);
-  };
-  
-  const handleUpdateProduct = (data: FoodItem) => { // Changed type to FoodItem
-    if (!currentProduct) return;
-    
-    const updatedProducts = products.map(item => 
-      item.id === currentProduct.id ? { ...item, ...data } : item
-    );
-    
-    console.log("Updating product:", currentProduct.id);
-    console.log("New data:", data);
-    console.log("Updated product:", updatedProducts.find(p => p.id === currentProduct.id));
-    
-    setProducts(updatedProducts);
-    setIsEditProductOpen(false);
-    setCurrentProduct(null);
-    toast.success('Produto atualizado com sucesso!');
-  };
-  
-  const handleDeleteClick = (product: FoodItem) => {
-    setCurrentProduct(product);
-    setIsDeleteDialogOpen(true);
-  };
-  
-  const handleDeleteProduct = () => {
-    if (!currentProduct) return;
-    
-    const updatedProducts = products.filter(item => item.id !== currentProduct.id);
-    setProducts(updatedProducts);
-    setIsDeleteDialogOpen(false);
-    setCurrentProduct(null);
-    toast.success('Produto removido com sucesso!');
-  };
-  
-  const handleCancelDelete = () => {
-    setIsDeleteDialogOpen(false);
-    setCurrentProduct(null);
-  };
-  
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold mb-1">Produtos</h1>
-          <p className="text-gray-500">Gerencie os produtos da sua loja</p>
+          <h1 className="text-2xl font-bold">Gerenciar Produtos</h1>
+          <p className="text-gray-500">Adicione, edite ou remova produtos do seu cardápio.</p>
         </div>
-        
-        <Button className="gap-2" onClick={() => setIsAddProductOpen(true)}>
-          <Plus className="h-4 w-4" />
-          Novo Produto
+        <Button onClick={handleAddProduct} className="w-full sm:w-auto">
+          <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Produto
         </Button>
       </div>
-      
+
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <Input 
-                placeholder="Buscar produtos..." 
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+        <CardHeader>
+          <CardTitle>Lista de Produtos</CardTitle>
+          <CardDescription>Visualize e gerencie todos os produtos cadastrados.</CardDescription>
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input 
+              placeholder="Buscar produto por nome..." 
+              className="pl-9 w-full sm:w-1/2 lg:w-1/3"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left pb-3 font-medium text-gray-500 w-8">
-                    {/* <Checkbox /> Keep if you plan to implement bulk actions */}
-                  </th>
-                  <th className="text-left pb-3 font-medium text-gray-500">Produto</th>
-                  <th className="text-left pb-3 font-medium text-gray-500 hidden md:table-cell">Categoria</th>
-                  <th className="text-left pb-3 font-medium text-gray-500 hidden lg:table-cell">Descrição</th>
-                  <th className="text-left pb-3 font-medium text-gray-500">Status</th>
-                  <th className="text-left pb-3 font-medium text-gray-500">Preço</th>
-                  <th className="text-right pb-3 font-medium text-gray-500">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((product) => (
-                  <tr key={product.id} className="border-b last:border-0">
-                    <td className="py-4">
-                      {/* <Checkbox /> Keep if you plan to implement bulk actions */}
-                    </td>
-                    <td className="py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded overflow-hidden bg-gray-100">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
+          {isLoading ? (
+            <p>Carregando produtos...</p>
+          ) : products.length === 0 ? (
+            <div className="text-center py-10">
+              <PackageOpen className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-4 text-lg font-medium text-gray-600">Nenhum produto encontrado.</p>
+              <p className="text-sm text-gray-500">
+                {searchTerm ? 'Tente um termo de busca diferente.' : 'Comece adicionando novos produtos.'}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[80px] hidden sm:table-cell">Imagem</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead className="text-right">Preço</TableHead>
+                    <TableHead className="hidden md:table-cell">Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="hidden sm:table-cell">
+                        {product.image_url ? (
+                           <img 
+                            src={product.image_url} 
+                            alt={product.name} 
+                            className="h-12 w-12 object-cover rounded" 
+                           onError={(e) => (e.currentTarget.style.display = 'none')} // Hide on error
                           />
-                        </div>
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-gray-500">ID: {product.id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 text-gray-600 hidden md:table-cell">
-                      {product.category || 'N/A'}
-                    </td>
-                    <td className="py-4 text-gray-600 hidden lg:table-cell max-w-[200px] truncate">
-                      {product.description || 'Sem descrição'}
-                    </td>
-                    <td className="py-4">
-                      <div className="flex flex-col gap-1">
-                        {product.popular && (
-                          <Badge variant="default" className="text-xs">Popular</Badge>
+                        ) : (
+                          <div className="h-12 w-12 flex items-center justify-center bg-gray-100 rounded text-gray-400">
+                            <ImageOff size={24} />
+                          </div>
                         )}
-                        {product.vegetarian && (
-                           <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">Vegetariano</Badge>
-                        )}
-                        {(!product.popular && !product.vegetarian) && (
-                           <Badge variant="outline" className="text-xs">Normal</Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4 font-medium">
-                      R$ {product.price.toFixed(2)}
-                    </td>
-                    <td className="py-4 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button 
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditProduct(product)}
-                          title="Editar produto"
-                        >
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.categories?.name || <span className="text-gray-400 italic">Sem categoria</span>}</TableCell>
+                      <TableCell className="text-right">R$ {Number(product.price).toFixed(2)}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {product.popular && <Badge variant="outline" className="mr-1 border-green-500 text-green-600">Popular</Badge>}
+                        {product.vegetarian && <Badge variant="outline" className="border-blue-500 text-blue-600">Vegetariano</Badge>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleEditProduct(product)} className="mr-2">
                           <Edit className="h-4 w-4" />
                         </Button>
-                        
-                        <Button 
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteClick(product)}
-                          title="Remover produto"
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product.id, product.name)} className="text-red-500 hover:text-red-600">
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                
-                {filteredProducts.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-gray-500">
-                      Nenhum produto encontrado
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
-      
-      {/* Modal de adição de produto */}
-      <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Produto</DialogTitle>
-            <DialogDescription>
-              Preencha as informações para adicionar um novo produto ao cardápio
-            </DialogDescription>
-          </DialogHeader>
-          
-          <ProductForm 
-            onSubmit={handleAddProduct}
-            categories={categories}
-            onCancel={() => setIsAddProductOpen(false)}
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-y-auto max-h-[90vh]">
+          {/* O SupabaseProductForm agora controla seu próprio Card e padding */}
+          <SupabaseProductForm 
+            product={editingProduct}
+            onSuccess={onFormSuccess}
+            onCancel={onFormCancel}
           />
         </DialogContent>
       </Dialog>
-      
-      {/* Modal de edição de produto */}
-      <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Editar Produto</DialogTitle>
-            <DialogDescription>
-              Atualize as informações do produto
-            </DialogDescription>
-          </DialogHeader>
-          
-          {currentProduct && (
-            <ProductForm 
-              product={currentProduct}
-              onSubmit={handleUpdateProduct}
-              categories={categories}
-              onCancel={() => setIsEditProductOpen(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Diálogo de confirmação de exclusão */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o produto
-              "{currentProduct?.name}" do seu cardápio.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelDelete}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProduct} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

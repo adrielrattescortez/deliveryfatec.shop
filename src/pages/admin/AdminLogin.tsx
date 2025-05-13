@@ -20,7 +20,7 @@ type FormData = z.infer<typeof formSchema>;
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { login } = useUser();
+  const { adminLogin, loading } = useUser(); // Use adminLogin from context
   const [showPassword, setShowPassword] = useState(false);
   
   const form = useForm<FormData>({
@@ -31,19 +31,14 @@ const AdminLogin = () => {
     },
   });
   
-  const onSubmit = (data: FormData) => {
-    // Verificar se é um administrador
-    if (data.email === 'admin@example.com' && data.password === 'admin123') {
-      login({
-        id: '1',
-        name: 'Administrador',
-        email: data.email,
-        role: 'admin',
-      });
-      navigate('/admin');
+  const onSubmit = async (data: FormData) => {
+    try {
+      await adminLogin(data.email, data.password);
       toast.success('Login de administrador realizado com sucesso!');
-    } else {
-      toast.error('Credenciais de administrador inválidas');
+      navigate('/admin');
+    } catch (error: any) {
+      toast.error(error.message || 'Credenciais de administrador inválidas ou falha no login.');
+      console.error("Admin login error:", error);
     }
   };
   
@@ -94,7 +89,8 @@ const AdminLogin = () => {
                         <button 
                           type="button" 
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
                         >
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -106,17 +102,17 @@ const AdminLogin = () => {
               />
               
               <div className="pt-2">
-                <Button type="submit" className="w-full" size="lg">
-                  Entrar como Administrador
+                <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                  {loading ? 'Entrando...' : 'Entrar como Administrador'}
                 </Button>
               </div>
             </form>
           </Form>
           
+          {/* For demonstration purposes, you might want to remove this or secure it for production */}
           <div className="mt-8 border-t pt-6">
             <p className="text-sm text-gray-500 text-center">
-              Para fins de demonstração:<br />
-              Admin: admin@example.com / admin123
+              Lembre-se de criar um usuário admin no Supabase e atribuir a role 'admin'.
             </p>
           </div>
         </div>
