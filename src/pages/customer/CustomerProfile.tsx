@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome é obrigatório' }),
@@ -25,7 +25,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const CustomerProfile = () => {
-  const { currentUser, login } = useUser();
+  const { currentUser } = useUser();
   
   const defaultValues = {
     name: currentUser?.name || '',
@@ -44,27 +44,26 @@ const CustomerProfile = () => {
     defaultValues,
   });
   
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     if (!currentUser) return;
     
-    // Atualizar dados do usuário
-    const updatedUser = {
-      ...currentUser,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: {
-        street: data.street,
-        number: data.number,
-        neighborhood: data.neighborhood,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zipCode,
-      },
-    };
-    
-    login(updatedUser);
-    toast.success('Perfil atualizado com sucesso!');
+    try {
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: data.name,
+          phone: data.phone,
+          // Add address fields when implemented in the database
+        })
+        .eq('id', currentUser.id);
+      
+      if (error) throw error;
+      
+      toast.success('Perfil atualizado com sucesso!');
+    } catch (error: any) {
+      toast.error(`Erro ao atualizar perfil: ${error.message}`);
+    }
   };
   
   return (

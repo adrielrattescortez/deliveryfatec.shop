@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import { Tables } from '@/integrations/supabase/types'; // Certifique-se que este caminho está correto e o arquivo existe
+import { Tables } from '@/integrations/supabase/types';
 
 export type AppUser = {
   id: string;
@@ -10,6 +9,14 @@ export type AppUser = {
   email: string | undefined;
   phone: string | null;
   role: Tables<'user_roles'>['role'] | null;
+  address?: {
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
 };
 
 interface UserContextType {
@@ -58,7 +65,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
-      authListener?.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
   }, []);
 
@@ -89,6 +96,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         name: profile?.name ?? null,
         phone: profile?.phone ?? null,
         role: userRole?.role ?? null,
+        address: profile?.address,
       };
       setCurrentUser(appUser);
       setIsAdmin(userRole?.role === 'admin');
@@ -135,7 +143,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       // onAuthStateChange will handle setting user and loading state update after successful check.
     }
   };
-
 
   const signup = async (name: string, email: string, password: string) => {
     setLoading(true);

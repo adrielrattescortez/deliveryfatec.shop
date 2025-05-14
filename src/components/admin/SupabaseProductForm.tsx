@@ -86,14 +86,20 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
       if (product && product.id) { // Edição
         const { error } = await supabase
           .from('products')
-          .update({ ...formData, price: formData.price.toString() }) // Supabase espera decimal como string
+          .update({
+            ...formData,
+            price: formData.price // Enviar como número
+          })
           .eq('id', product.id);
         if (error) throw error;
         toast.success(`Produto "${formData.name}" atualizado com sucesso!`);
       } else { // Criação
         const { error } = await supabase
           .from('products')
-          .insert([{ ...formData, price: formData.price.toString() }]);
+          .insert([{
+            ...formData,
+            price: formData.price // Enviar como número
+          }]);
         if (error) throw error;
         toast.success(`Produto "${formData.name}" criado com sucesso!`);
       }
