@@ -96,8 +96,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         name: profile?.name ?? null,
         phone: profile?.phone ?? null,
         role: userRole?.role ?? null,
-        address: profile?.address,
+        // Verificamos se profile.address existe antes de atribuir
+        ...(profile?.address ? { address: profile.address } : {})
       };
+      
       setCurrentUser(appUser);
       setIsAdmin(userRole?.role === 'admin');
 

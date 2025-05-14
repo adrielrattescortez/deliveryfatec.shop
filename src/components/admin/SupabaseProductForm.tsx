@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -94,12 +93,21 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
         if (error) throw error;
         toast.success(`Produto "${formData.name}" atualizado com sucesso!`);
       } else { // Criação
+        // Garantir que formData tenha todas as propriedades obrigatórias
+        const productData = {
+          name: formData.name, // Propriedade obrigatória
+          description: formData.description,
+          price: formData.price,
+          category_id: formData.category_id,
+          image_url: formData.image_url,
+          popular: formData.popular,
+          vegetarian: formData.vegetarian
+        };
+        
         const { error } = await supabase
           .from('products')
-          .insert([{
-            ...formData,
-            price: formData.price // Enviar como número
-          }]);
+          .insert([productData]);
+          
         if (error) throw error;
         toast.success(`Produto "${formData.name}" criado com sucesso!`);
       }
