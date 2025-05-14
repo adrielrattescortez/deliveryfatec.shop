@@ -20,6 +20,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminSettings from "./pages/admin/AdminSettings";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminRegister from "./pages/admin/AdminRegister";
 import Register from "./pages/Register";
 import { CartProvider } from "./contexts/CartContext";
 import { UserProvider } from "./contexts/UserContext";
@@ -47,6 +48,7 @@ const App = () => (
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/admin-login" element={<AdminLogin />} />
+                  <Route path="/admin-register" element={<AdminRegister />} />
                   <Route path="/register" element={<Register />} />
                   
                   {/* Rotas do cliente */}

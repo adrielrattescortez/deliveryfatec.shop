@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -109,10 +109,12 @@ const AdminLogin = () => {
             </form>
           </Form>
           
-          {/* For demonstration purposes, you might want to remove this or secure it for production */}
           <div className="mt-8 border-t pt-6">
             <p className="text-sm text-gray-500 text-center">
-              Lembre-se de criar um usuário admin no Supabase e atribuir a role 'admin'.
+              Não tem uma conta de administrador?{' '}
+              <Link to="/admin-register" className="font-medium text-primary hover:underline">
+                Registrar Admin
+              </Link>
             </p>
           </div>
         </div>
