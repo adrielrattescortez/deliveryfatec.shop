@@ -51,13 +51,14 @@ const AdminRegister = () => {
         return;
       }
 
-      // Assign admin role to the user
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role: 'admin' });
+      // Use a service role function to assign admin role
+      // Using a POST request to invoke an edge function that will handle admin role assignment
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('assign-admin-role', {
+        body: { userId },
+      });
 
-      if (roleError) {
-        console.error("Error assigning admin role:", roleError);
+      if (functionError) {
+        console.error("Error calling assign-admin-role function:", functionError);
         toast({
           variant: "destructive",
           title: "Erro",
