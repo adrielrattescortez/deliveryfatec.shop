@@ -37,17 +37,16 @@ const AdminRegister = () => {
   const onSubmit = async (data: FormData) => {
     try {
       // Register the user first
-      await signup(data.name, data.email, data.password);
+      const signupResult = await signup(data.name, data.email, data.password);
       
-      // Then, assign admin role
-      const { data: userData } = await supabase.auth.getSession();
-      const userId = userData.session?.user.id;
+      // Check if we have a user ID from the signup process
+      const userId = signupResult?.user?.id;
       
       if (!userId) {
         toast({
           variant: "destructive",
           title: "Erro",
-          description: "Erro ao obter ID do usuário",
+          description: "Erro ao obter ID do usuário após cadastro",
         });
         return;
       }

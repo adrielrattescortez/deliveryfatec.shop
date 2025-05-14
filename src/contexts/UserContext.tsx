@@ -26,7 +26,7 @@ interface UserContextType {
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   adminLogin: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<{ user: SupabaseUser | null } | undefined>;
   logout: () => Promise<void>;
 }
 
@@ -151,34 +151,29 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = async (name: string, email: string, password: string) => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name, // This goes into raw_user_meta_data for the trigger
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name, // This goes into raw_user_meta_data for the trigger
+          },
         },
-      },
-    });
-    if (error) {
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Return the user data for immediate use
+      return { user: data.user };
+    } catch (error) {
       setLoading(false);
       throw error;
+    } finally {
+      setLoading(false);
     }
-    // After signup, Supabase might send a confirmation email.
-    // The handle_new_user trigger will create a profile.
-    // We might want to assign a default 'customer' role here if needed.
-    if (data.user) {
-        // Optionally assign 'customer' role upon signup
-        const { error: roleInsertError } = await supabase
-            .from('user_roles')
-            .insert({ user_id: data.user.id, role: 'customer' });
-        if (roleInsertError) {
-            console.error("Error assigning default role:", roleInsertError);
-            // Decide how to handle this: sign out user, show error, or log and continue?
-            // For now, just logging.
-        }
-    }
-    // onAuthStateChange will handle setting user and loading
   };
 
   const logout = async () => {
