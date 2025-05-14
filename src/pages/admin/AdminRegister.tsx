@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,13 +16,9 @@ const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }),
-  adminCode: z.string().min(6, { message: 'Código de administrador inválido' })
 });
 
 type FormData = z.infer<typeof formSchema>;
-
-// In a real application, this should be stored securely and not hardcoded
-const ADMIN_ACCESS_CODE = "admin123"; // This is just for demonstration
 
 const AdminRegister = () => {
   const navigate = useNavigate();
@@ -35,18 +31,11 @@ const AdminRegister = () => {
       name: '',
       email: '',
       password: '',
-      adminCode: ''
     },
   });
 
   const onSubmit = async (data: FormData) => {
     try {
-      // Verify admin code
-      if (data.adminCode !== ADMIN_ACCESS_CODE) {
-        toast.error('Código de administrador inválido');
-        return;
-      }
-
       // Register the user first
       await signup(data.name, data.email, data.password);
       
@@ -55,7 +44,11 @@ const AdminRegister = () => {
       const userId = userData.session?.user.id;
       
       if (!userId) {
-        toast.error('Erro ao obter ID do usuário');
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Erro ao obter ID do usuário",
+        });
         return;
       }
 
@@ -66,14 +59,25 @@ const AdminRegister = () => {
 
       if (roleError) {
         console.error("Error assigning admin role:", roleError);
-        toast.error('Erro ao atribuir papel de administrador');
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Erro ao atribuir papel de administrador",
+        });
         return;
       }
 
-      toast.success('Cadastro de administrador realizado com sucesso!');
+      toast({
+        title: "Sucesso",
+        description: "Cadastro de administrador realizado com sucesso!",
+      });
       navigate('/admin-login');
     } catch (error: any) {
-      toast.error(error.message || 'Falha no cadastro. Tente novamente.');
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: error.message || "Falha no cadastro. Tente novamente.",
+      });
       console.error("Admin signup error:", error);
     }
   };
@@ -136,19 +140,6 @@ const AdminRegister = () => {
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="adminCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Código de Administrador</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="Código secreto de acesso" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
