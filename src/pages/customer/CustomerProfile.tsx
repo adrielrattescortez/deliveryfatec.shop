@@ -48,13 +48,20 @@ const CustomerProfile = () => {
     if (!currentUser) return;
     
     try {
-      // Update profile in Supabase
+      // Update profile in Supabase with address as JSONB
       const { error } = await supabase
         .from('profiles')
         .update({
           name: data.name,
           phone: data.phone,
-          // Add address fields when implemented in the database
+          address: {
+            street: data.street,
+            number: data.number,
+            neighborhood: data.neighborhood,
+            city: data.city,
+            state: data.state,
+            zipCode: data.zipCode
+          }
         })
         .eq('id', currentUser.id);
       
