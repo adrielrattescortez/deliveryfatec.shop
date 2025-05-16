@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -20,8 +20,15 @@ type FormData = z.infer<typeof formSchema>;
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { adminLogin, loading } = useUser(); // Use adminLogin from context
+  const { adminLogin, loading, isAdmin, currentUser } = useUser();
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Redirect if already logged in as admin
+  useEffect(() => {
+    if (currentUser && isAdmin) {
+      navigate('/admin');
+    }
+  }, [currentUser, isAdmin, navigate]);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -35,10 +42,10 @@ const AdminLogin = () => {
     try {
       await adminLogin(data.email, data.password);
       toast.success('Login de administrador realizado com sucesso!');
-      navigate('/admin');
+      // No need to navigate here, the useEffect will handle redirection
     } catch (error: any) {
-      toast.error(error.message || 'Credenciais de administrador inválidas ou falha no login.');
       console.error("Admin login error:", error);
+      toast.error(error.message || 'Credenciais de administrador inválidas ou falha no login.');
     }
   };
   

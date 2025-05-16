@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { useUser } from '@/contexts/UserContext'; // Updated import
+import { useUser } from '@/contexts/UserContext';
 import { Eye, EyeOff } from 'lucide-react';
 
 const formSchema = z.object({
@@ -20,8 +20,15 @@ type FormData = z.infer<typeof formSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loading } = useUser(); // Use login from context
+  const { login, loading, currentUser } = useUser();
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -35,10 +42,10 @@ const Login = () => {
     try {
       await login(data.email, data.password);
       toast.success('Login realizado com sucesso!');
-      navigate('/'); // Redirect to home or customer dashboard
+      // No need to navigate here, the useEffect will handle redirection
     } catch (error: any) {
-      toast.error(error.message || 'Falha no login. Verifique suas credenciais.');
       console.error("Login error:", error);
+      toast.error(error.message || 'Falha no login. Verifique suas credenciais.');
     }
   };
 

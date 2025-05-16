@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
@@ -39,27 +40,39 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session: activeSession } } = await supabase.auth.getSession();
-      setSession(activeSession);
-      if (activeSession?.user) {
-        await fetchUserProfile(activeSession.user);
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        setLoading(true);
+        const { data: { session: activeSession } } = await supabase.auth.getSession();
+        
+        setSession(activeSession);
+        
+        if (activeSession?.user) {
+          await fetchUserProfile(activeSession.user);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    getSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, activeSession) => {
-      setSession(activeSession);
-      if (activeSession?.user) {
-        await fetchUserProfile(activeSession.user);
+    getInitialSession();
+
+    // Set up auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('Auth state changed:', event, newSession?.user?.id);
+      setSession(newSession);
+      
+      if (newSession?.user) {
+        await fetchUserProfile(newSession.user);
       } else {
         setCurrentUser(null);
         setIsAdmin(false);
       }
-      if (_event === 'INITIAL_SESSION') {
-         // Handle initial session if needed, or remove if getSession covers it
-      } else {
+      
+      if (event !== 'INITIAL_SESSION') {
         setLoading(false);
       }
     });
@@ -72,28 +85,33 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     setLoading(true);
     try {
+      // Fetch profile data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError && profileError.code !== 'PGRST116') {
+        // PGRST116 is "no rows returned" error, which is expected for new users
+        console.error('Error fetching profile:', profileError);
+      }
 
+      // Fetch user role data
       const { data: userRole, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', supabaseUser.id)
         .single();
       
-      // It's possible a user has a profile but no role yet, or vice-versa in some edge cases.
-      // Handle roleError if user might not have a role, e.g. new user before role assignment.
-      // For now, we assume roleError means no specific role or an actual error.
+      if (roleError && roleError.code !== 'PGRST116') {
+        console.error('Error fetching user role:', roleError);
+      }
 
       const appUser: AppUser = {
         id: supabaseUser.id,
         email: supabaseUser.email,
-        name: profile?.name ?? null,
+        name: profile?.name ?? supabaseUser.email?.split('@')[0] ?? null,
         phone: profile?.phone ?? null,
         role: userRole?.role ?? null,
       };
@@ -105,10 +123,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       
       setCurrentUser(appUser);
       setIsAdmin(userRole?.role === 'admin');
+      console.log('User profile set:', appUser, 'isAdmin:', userRole?.role === 'admin');
 
     } catch (error) {
-      console.error('Error fetching user profile or role:', error);
-      setCurrentUser(null); // Clear user if profile fetch fails
+      console.error('Error in fetchUserProfile:', error);
+      setCurrentUser(null);
       setIsAdmin(false);
     } finally {
       setLoading(false);
@@ -117,35 +136,58 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setLoading(false);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) throw error;
+      console.log('Login successful:', data);
+      
+      // fetchUserProfile will be called by the auth state change listener
+      return;
+    } catch (error: any) {
+      console.error('Login error:', error);
       throw error;
+    } finally {
+      // Don't set loading=false here as it will be handled by the auth listener
     }
-    // onAuthStateChange will handle setting user and loading
   };
 
   const adminLogin = async (email: string, password: string) => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setLoading(false);
-      throw error;
-    }
-    if (data.user) {
-      // Fetch profile and role to confirm admin status
+    try {
+      // First attempt to sign in
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      
+      if (!data.user) throw new Error('Falha ao obter dados do usuário');
+
+      // After login is successful, check if user has admin role
       const { data: userRole, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', data.user.id)
         .single();
 
-      if (roleError || userRole?.role !== 'admin') {
-        await supabase.auth.signOut(); // Sign out if not an admin
-        setLoading(false);
-        throw new Error('Acesso negado. Credenciais de administrador inválidas ou sem permissão.');
+      if (roleError) {
+        // If there's an error or no role found, sign out and throw error
+        await supabase.auth.signOut();
+        throw new Error('Erro ao verificar permissões de administrador');
       }
-      // onAuthStateChange will handle setting user and loading state update after successful check.
+
+      if (userRole?.role !== 'admin') {
+        // If user is not an admin, sign them out and throw error
+        await supabase.auth.signOut();
+        throw new Error('Acesso negado. Você não tem permissões de administrador.');
+      }
+
+      console.log('Admin login successful:', data.user.id);
+      // fetchUserProfile will be called by the auth state change listener
+      
+    } catch (error: any) {
+      console.error('Admin login error:', error);
+      throw error;
+    } finally {
+      // Don't set loading=false here as it will be handled by the auth listener
     }
   };
 
@@ -157,19 +199,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         password,
         options: {
           data: {
-            name: name, // This goes into raw_user_meta_data for the trigger
+            name: name,
           },
         },
       });
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       // Return the user data for immediate use
       return { user: data.user };
+      
     } catch (error) {
-      setLoading(false);
+      console.error('Signup error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -177,17 +218,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      setLoading(false);
+    try {
+      setLoading(true);
+      await supabase.auth.signOut();
+      setCurrentUser(null);
+      setIsAdmin(false);
+      setSession(null);
+    } catch (error) {
+      console.error('Logout error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
-    setCurrentUser(null);
-    setIsAdmin(false);
-    setSession(null);
-    // setLoading(false) will be handled by onAuthStateChange if it fires, or here if needed.
-    setLoading(false); // Ensure loading is false after sign out completes
   };
 
   return (
