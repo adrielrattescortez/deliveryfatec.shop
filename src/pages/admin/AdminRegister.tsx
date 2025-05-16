@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +24,7 @@ const AdminRegister = () => {
   const navigate = useNavigate();
   const { signup, loading } = useUser();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -36,49 +37,40 @@ const AdminRegister = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      // Register the user first
+      setIsSubmitting(true);
+      // Registre o usuário primeiro
       const signupResult = await signup(data.name, data.email, data.password);
       
-      // Check if we have a user ID from the signup process
+      // Verifique se temos um ID de usuário do processo de inscrição
       const userId = signupResult?.user?.id;
       
       if (!userId) {
-        toast({
-          variant: "destructive",
-          title: "Erro",
-          description: "Erro ao obter ID do usuário após cadastro",
-        });
+        toast.error("Erro ao obter ID do usuário após cadastro");
         return;
       }
+      
+      console.log("User registered successfully, ID:", userId);
 
-      // Use a service role function to assign admin role
-      // Using a POST request to invoke an edge function that will handle admin role assignment
+      // Use a função edge para atribuir a função de administrador
       const { data: functionData, error: functionError } = await supabase.functions.invoke('assign-admin-role', {
         body: { userId },
       });
 
       if (functionError) {
         console.error("Error calling assign-admin-role function:", functionError);
-        toast({
-          variant: "destructive",
-          title: "Erro",
-          description: "Erro ao atribuir papel de administrador",
-        });
+        toast.error("Erro ao atribuir papel de administrador");
         return;
       }
-
-      toast({
-        title: "Sucesso",
-        description: "Cadastro de administrador realizado com sucesso!",
-      });
+      
+      console.log("Admin role assigned successfully:", functionData);
+      toast.success("Cadastro de administrador realizado com sucesso!");
       navigate('/admin-login');
+      
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: error.message || "Falha no cadastro. Tente novamente.",
-      });
       console.error("Admin signup error:", error);
+      toast.error(error.message || "Falha no cadastro. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -145,8 +137,8 @@ const AdminRegister = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={loading} size="lg">
-              {loading ? 'Registrando...' : 'Registrar como Administrador'}
+            <Button type="submit" className="w-full" disabled={loading || isSubmitting} size="lg">
+              {isSubmitting ? 'Registrando...' : 'Registrar como Administrador'}
             </Button>
           </form>
         </Form>

@@ -22,10 +22,12 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { adminLogin, loading, isAdmin, currentUser } = useUser();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Redirect if already logged in as admin
+  // Redirecionar se já estiver logado como administrador
   useEffect(() => {
     if (currentUser && isAdmin) {
+      console.log("Admin already logged in, redirecting to admin dashboard");
       navigate('/admin');
     }
   }, [currentUser, isAdmin, navigate]);
@@ -40,12 +42,16 @@ const AdminLogin = () => {
   
   const onSubmit = async (data: FormData) => {
     try {
+      setIsSubmitting(true);
+      console.log("Attempting admin login with:", data.email);
       await adminLogin(data.email, data.password);
       toast.success('Login de administrador realizado com sucesso!');
-      // No need to navigate here, the useEffect will handle redirection
+      // Não é necessário navegar aqui, o useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message || 'Credenciais de administrador inválidas ou falha no login.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -109,8 +115,8 @@ const AdminLogin = () => {
               />
               
               <div className="pt-2">
-                <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                  {loading ? 'Entrando...' : 'Entrar como Administrador'}
+                <Button type="submit" className="w-full" size="lg" disabled={loading || isSubmitting}>
+                  {isSubmitting ? 'Entrando...' : 'Entrar como Administrador'}
                 </Button>
               </div>
             </form>

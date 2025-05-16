@@ -14,6 +14,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Processing assign-admin-role request");
+    
     // Create a Supabase client with the Admin key
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -26,9 +28,13 @@ serve(async (req) => {
       }
     );
 
-    const { userId } = await req.json();
+    const requestData = await req.json();
+    const { userId } = requestData;
+
+    console.log("Received userId:", userId);
 
     if (!userId) {
+      console.error("No userId provided in request body");
       return new Response(
         JSON.stringify({ error: "User ID is required" }),
         {
@@ -40,14 +46,15 @@ serve(async (req) => {
 
     // Insert the admin role using the service role client
     // This bypasses RLS and allows us to insert the record
-    const { error } = await supabaseAdmin
+    console.log("Assigning admin role to user:", userId);
+    const { data, error } = await supabaseAdmin
       .from("user_roles")
       .insert({ user_id: userId, role: "admin" });
 
     if (error) {
-      console.error("Error in assign-admin-role function:", error);
+      console.error("Error assigning admin role:", error);
       return new Response(
-        JSON.stringify({ error: "Failed to assign admin role" }),
+        JSON.stringify({ error: "Failed to assign admin role", details: error }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -55,6 +62,7 @@ serve(async (req) => {
       );
     }
 
+    console.log("Admin role assigned successfully");
     return new Response(
       JSON.stringify({ success: true, message: "Admin role assigned successfully" }),
       {
@@ -64,9 +72,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Error in assign-admin-role function:", error);
+    console.error("Unexpected error in assign-admin-role function:", error);
     return new Response(
-      JSON.stringify({ error: "Internal Server Error" }),
+      JSON.stringify({ error: "Internal Server Error", details: String(error) }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

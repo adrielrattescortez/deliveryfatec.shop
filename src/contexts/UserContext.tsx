@@ -40,7 +40,23 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Get initial session
+    // Configuração do listener de autenticação primeiro
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('Auth state changed:', event, newSession?.user?.id);
+      setSession(newSession);
+      
+      if (newSession?.user) {
+        // Usar setTimeout para evitar deadlock
+        setTimeout(() => {
+          fetchUserProfile(newSession.user);
+        }, 0);
+      } else {
+        setCurrentUser(null);
+        setIsAdmin(false);
+      }
+    });
+
+    // Em seguida, verificar a sessão existente
     const getInitialSession = async () => {
       try {
         setLoading(true);
@@ -60,23 +76,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     getInitialSession();
 
-    // Set up auth state change listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('Auth state changed:', event, newSession?.user?.id);
-      setSession(newSession);
-      
-      if (newSession?.user) {
-        await fetchUserProfile(newSession.user);
-      } else {
-        setCurrentUser(null);
-        setIsAdmin(false);
-      }
-      
-      if (event !== 'INITIAL_SESSION') {
-        setLoading(false);
-      }
-    });
-
     return () => {
       authListener.subscription.unsubscribe();
     };
@@ -85,6 +84,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     setLoading(true);
     try {
+      console.log('Fetching user profile for:', supabaseUser.id);
+      
       // Fetch profile data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -122,8 +123,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
       
       setCurrentUser(appUser);
-      setIsAdmin(userRole?.role === 'admin');
-      console.log('User profile set:', appUser, 'isAdmin:', userRole?.role === 'admin');
+      const isUserAdmin = userRole?.role === 'admin';
+      setIsAdmin(isUserAdmin);
+      console.log('User profile set:', appUser, 'isAdmin:', isUserAdmin);
 
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -137,31 +139,41 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      console.log('Attempting login for:', email);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
-      if (error) throw error;
-      console.log('Login successful:', data);
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
       
-      // fetchUserProfile will be called by the auth state change listener
+      console.log('Login successful:', data);
+      // fetchUserProfile será chamado pelo listener de mudança de estado de autenticação
       return;
     } catch (error: any) {
+      setLoading(false);
       console.error('Login error:', error);
       throw error;
-    } finally {
-      // Don't set loading=false here as it will be handled by the auth listener
     }
   };
 
   const adminLogin = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // First attempt to sign in
+      console.log('Attempting admin login for:', email);
+      // Primeiro tenta fazer login
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (error) {
+        console.error('Admin login auth error:', error);
+        throw error;
+      }
       
-      if (!data.user) throw new Error('Falha ao obter dados do usuário');
+      if (!data.user) {
+        console.error('Admin login - no user data');
+        throw new Error('Falha ao obter dados do usuário');
+      }
 
-      // After login is successful, check if user has admin role
+      // Após login bem-sucedido, verifica se o usuário tem papel de administrador
       const { data: userRole, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
@@ -169,31 +181,33 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (roleError) {
-        // If there's an error or no role found, sign out and throw error
+        console.error('Admin login role error:', roleError);
+        // Se houver erro ou nenhum papel encontrado, encerra a sessão e lança erro
         await supabase.auth.signOut();
         throw new Error('Erro ao verificar permissões de administrador');
       }
 
       if (userRole?.role !== 'admin') {
-        // If user is not an admin, sign them out and throw error
+        console.error('User is not admin:', userRole?.role);
+        // Se o usuário não for administrador, encerra a sessão e lança erro
         await supabase.auth.signOut();
         throw new Error('Acesso negado. Você não tem permissões de administrador.');
       }
 
-      console.log('Admin login successful:', data.user.id);
-      // fetchUserProfile will be called by the auth state change listener
+      console.log('Admin login successful:', data.user.id, 'Role:', userRole.role);
+      // fetchUserProfile será chamado pelo listener de mudança de estado de autenticação
       
     } catch (error: any) {
+      setLoading(false);
       console.error('Admin login error:', error);
       throw error;
-    } finally {
-      // Don't set loading=false here as it will be handled by the auth listener
     }
   };
 
   const signup = async (name: string, email: string, password: string) => {
     setLoading(true);
     try {
+      console.log('Attempting signup for:', email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -204,9 +218,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Signup error:', error);
+        throw error;
+      }
       
-      // Return the user data for immediate use
+      console.log('Signup successful:', data);
+      // Retorna os dados do usuário para uso imediato
       return { user: data.user };
       
     } catch (error) {
@@ -224,6 +242,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setCurrentUser(null);
       setIsAdmin(false);
       setSession(null);
+      console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

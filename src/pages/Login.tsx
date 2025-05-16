@@ -22,10 +22,12 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, loading, currentUser } = useUser();
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already logged in
+  // Redirecionar se já estiver logado
   useEffect(() => {
     if (currentUser) {
+      console.log("User already logged in, redirecting to home");
       navigate('/');
     }
   }, [currentUser, navigate]);
@@ -40,12 +42,16 @@ const Login = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
+      setIsSubmitting(true);
+      console.log("Attempting login with:", data.email);
       await login(data.email, data.password);
       toast.success('Login realizado com sucesso!');
-      // No need to navigate here, the useEffect will handle redirection
+      // Não é necessário navegar aqui, o useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || 'Falha no login. Verifique suas credenciais.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -98,8 +104,8 @@ const Login = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={loading} size="lg">
-              {loading ? 'Entrando...' : 'Entrar'}
+            <Button type="submit" className="w-full" disabled={loading || isSubmitting} size="lg">
+              {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
         </Form>
