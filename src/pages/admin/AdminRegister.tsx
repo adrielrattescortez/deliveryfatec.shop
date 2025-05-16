@@ -38,6 +38,8 @@ const AdminRegister = () => {
   const onSubmit = async (data: FormData) => {
     try {
       setIsSubmitting(true);
+      console.log("Starting admin registration process for:", data.email);
+      
       // Registre o usuário primeiro
       const signupResult = await signup(data.name, data.email, data.password);
       
@@ -51,25 +53,44 @@ const AdminRegister = () => {
       
       console.log("User registered successfully, ID:", userId);
 
-      // Use a função edge para atribuir a função de administrador
-      const { data: functionData, error: functionError } = await supabase.functions.invoke('assign-admin-role', {
-        body: { userId },
-      });
-
-      if (functionError) {
-        console.error("Error calling assign-admin-role function:", functionError);
-        toast.error("Erro ao atribuir papel de administrador");
-        return;
-      }
-      
-      console.log("Admin role assigned successfully:", functionData);
-      toast.success("Cadastro de administrador realizado com sucesso!");
-      navigate('/admin-login');
+      // Dar um pequeno atraso para garantir que o usuário esteja totalmente criado no banco de dados
+      // antes de atribuir o papel de administrador
+      setTimeout(async () => {
+        try {
+          // Use a função edge para atribuir a função de administrador
+          console.log("Calling assign-admin-role function with userId:", userId, "and email:", data.email);
+          
+          const { data: functionData, error: functionError } = await supabase.functions.invoke('assign-admin-role', {
+            body: { userId, email: data.email },
+          });
+    
+          if (functionError) {
+            console.error("Error calling assign-admin-role function:", functionError);
+            toast.error("Erro ao atribuir papel de administrador. Tente fazer login como administrador.");
+            navigate('/admin-login');
+            return;
+          }
+          
+          console.log("Admin role assignment response:", functionData);
+          
+          if (functionData.success) {
+            toast.success("Cadastro de administrador realizado com sucesso!");
+            navigate('/admin-login');
+          } else {
+            console.error("Admin role assignment failed:", functionData);
+            toast.error("Cadastro realizado, mas ocorreu um erro ao atribuir papel de administrador. Tente fazer login.");
+            navigate('/admin-login');
+          }
+        } catch (error) {
+          console.error("Error in admin role assignment:", error);
+          toast.error("Cadastro realizado, mas ocorreu um erro ao atribuir papel de administrador. Tente fazer login.");
+          navigate('/admin-login');
+        }
+      }, 1500); // 1.5 segundos de atraso
       
     } catch (error: any) {
       console.error("Admin signup error:", error);
       toast.error(error.message || "Falha no cadastro. Tente novamente.");
-    } finally {
       setIsSubmitting(false);
     }
   };

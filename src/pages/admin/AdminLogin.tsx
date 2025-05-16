@@ -45,12 +45,12 @@ const AdminLogin = () => {
       setIsSubmitting(true);
       console.log("Attempting admin login with:", data.email);
       await adminLogin(data.email, data.password);
+      
+      // O redirecionamento será feito pelo useEffect quando isAdmin for true
       toast.success('Login de administrador realizado com sucesso!');
-      // Não é necessário navegar aqui, o useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message || 'Credenciais de administrador inválidas ou falha no login.');
-    } finally {
       setIsSubmitting(false);
     }
   };

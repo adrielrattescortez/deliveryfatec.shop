@@ -40,6 +40,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    console.log("UserProvider initialized");
+    
     // Configuração do listener de autenticação primeiro
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log('Auth state changed:', event, newSession?.user?.id);
@@ -60,16 +62,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const getInitialSession = async () => {
       try {
         setLoading(true);
+        console.log("Checking for existing session");
         const { data: { session: activeSession } } = await supabase.auth.getSession();
         
+        console.log("Active session:", activeSession?.user?.id || "None");
         setSession(activeSession);
         
         if (activeSession?.user) {
           await fetchUserProfile(activeSession.user);
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
-      } finally {
         setLoading(false);
       }
     };
@@ -77,15 +82,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     getInitialSession();
 
     return () => {
+      console.log("Cleaning up auth listener");
       authListener.subscription.unsubscribe();
     };
   }, []);
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
+    console.log('Fetching user profile for:', supabaseUser.id);
     setLoading(true);
+    
     try {
-      console.log('Fetching user profile for:', supabaseUser.id);
-      
       // Fetch profile data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -93,10 +99,34 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', supabaseUser.id)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        // PGRST116 is "no rows returned" error, which is expected for new users
+      if (profileError) {
         console.error('Error fetching profile:', profileError);
+        
+        // If no profile exists, create one
+        if (profileError.code === 'PGRST116') {
+          console.log('No profile found, creating one');
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: supabaseUser.id,
+              email: supabaseUser.email,
+              name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || null
+            });
+            
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          } else {
+            console.log('Profile created successfully');
+          }
+        }
       }
+
+      // Try to fetch the profile again if it wasn't found initially
+      const finalProfile = profile || (await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single()).data;
 
       // Fetch user role data
       const { data: userRole, error: roleError } = await supabase
@@ -112,14 +142,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const appUser: AppUser = {
         id: supabaseUser.id,
         email: supabaseUser.email,
-        name: profile?.name ?? supabaseUser.email?.split('@')[0] ?? null,
-        phone: profile?.phone ?? null,
+        name: finalProfile?.name ?? supabaseUser.user_metadata?.name ?? supabaseUser.email?.split('@')[0] ?? null,
+        phone: finalProfile?.phone ?? null,
         role: userRole?.role ?? null,
       };
       
       // Check if profile has address data and add it to the user if it exists
-      if (profile && profile.address) {
-        appUser.address = profile.address as AppUser['address'];
+      if (finalProfile && finalProfile.address) {
+        appUser.address = finalProfile.address as AppUser['address'];
       }
       
       setCurrentUser(appUser);
@@ -129,8 +159,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      setCurrentUser(null);
-      setIsAdmin(false);
     } finally {
       setLoading(false);
     }
@@ -147,9 +175,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      console.log('Login successful:', data);
+      console.log('Login successful:', data.user?.id);
       // fetchUserProfile será chamado pelo listener de mudança de estado de autenticação
-      return;
     } catch (error: any) {
       setLoading(false);
       console.error('Login error:', error);
@@ -173,6 +200,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Falha ao obter dados do usuário');
       }
 
+      console.log('Basic login successful, checking admin role');
+      
       // Após login bem-sucedido, verifica se o usuário tem papel de administrador
       const { data: userRole, error: roleError } = await supabase
         .from('user_roles')
@@ -223,7 +252,23 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      console.log('Signup successful:', data);
+      console.log('Signup successful:', data.user?.id);
+      
+      if (data.user) {
+        // Criar perfil do usuário imediatamente após o registro
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: data.user.email,
+            name: name
+          });
+          
+        if (profileError) {
+          console.error('Error creating profile during signup:', profileError);
+        }
+      }
+      
       // Retorna os dados do usuário para uso imediato
       return { user: data.user };
       
