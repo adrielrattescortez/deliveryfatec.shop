@@ -12,6 +12,37 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStore } from '@/contexts/StoreContext';
 import { toast } from 'sonner';
 
+// Export the FOOD_ITEMS array so it can be imported in other files
+export const FOOD_ITEMS: FoodItem[] = [
+  {
+    id: "1",
+    name: "Esfiha de Carne",
+    description: "Deliciosa esfiha de carne temperada com especiarias árabes",
+    price: 7.99,
+    image: "https://source.unsplash.com/featured/?esfiha,meat",
+    popular: true,
+    category: "Esfihas"
+  },
+  {
+    id: "2",
+    name: "Esfiha de Queijo",
+    description: "Esfiha recheada com queijo especial derretido",
+    price: 7.50,
+    image: "https://source.unsplash.com/featured/?esfiha,cheese",
+    popular: true,
+    category: "Esfihas"
+  },
+  {
+    id: "3",
+    name: "Kibe Frito",
+    description: "Kibe tradicional frito, crocante por fora e suculento por dentro",
+    price: 8.99,
+    image: "https://source.unsplash.com/featured/?kibe,arabic",
+    popular: true,
+    category: "Kibes"
+  }
+];
+
 const Index = () => {
   const { storeInfo } = useStore();
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);

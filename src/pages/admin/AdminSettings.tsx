@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -31,7 +30,7 @@ const AdminSettings = () => {
   const [bannerChanged, setBannerChanged] = useState(false);
   
   useEffect(() => {
-    // Atualiza previews quando storeInfo mudar
+    // Update previews when storeInfo changes
     if (!logoChanged) {
       setLogoPreview(storeInfo.logo || "");
     }
@@ -51,7 +50,7 @@ const AdminSettings = () => {
     },
   });
   
-  // Reset do form quando storeInfo mudar
+  // Reset the form when storeInfo changes
   useEffect(() => {
     form.reset({
       name: storeInfo.name,
@@ -89,11 +88,12 @@ const AdminSettings = () => {
   };
   
   const onSubmit = (data: FormData) => {
-    const updatedInfo = {
+    // Create a properly typed updatedInfo object that includes all StoreInfo properties
+    const updatedInfo: Partial<typeof storeInfo> = {
       ...data,
     };
 
-    // Só atualiza logo e banner se tiverem mudado
+    // Only update logo and banner if they've changed
     if (logoChanged) {
       updatedInfo.logo = logoPreview;
     }
@@ -104,7 +104,7 @@ const AdminSettings = () => {
     
     updateStoreInfo(updatedInfo);
     
-    // Reseta os flags de mudança
+    // Reset change flags
     setLogoChanged(false);
     setBannerChanged(false);
     
