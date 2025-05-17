@@ -1,5 +1,5 @@
 
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,19 +25,42 @@ type FormData = z.infer<typeof formSchema>;
 
 const AdminSettings = () => {
   const { storeInfo, updateStoreInfo } = useStore();
-  const [logoPreview, setLogoPreview] = useState(storeInfo.logo);
-  const [bannerPreview, setBannerPreview] = useState(storeInfo.banner);
+  const [logoPreview, setLogoPreview] = useState<string>(storeInfo.logo || "");
+  const [bannerPreview, setBannerPreview] = useState<string>(storeInfo.banner || "");
+  const [logoChanged, setLogoChanged] = useState(false);
+  const [bannerChanged, setBannerChanged] = useState(false);
+  
+  useEffect(() => {
+    // Atualiza previews quando storeInfo mudar
+    if (!logoChanged) {
+      setLogoPreview(storeInfo.logo || "");
+    }
+    if (!bannerChanged) {
+      setBannerPreview(storeInfo.banner || "");
+    }
+  }, [storeInfo, logoChanged, bannerChanged]);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: storeInfo.name || "",
+      description: storeInfo.description || '',
+      cuisineType: storeInfo.cuisineType || "",
+      deliveryFee: storeInfo.deliveryFee || 0,
+      minOrder: storeInfo.minOrder || 0,
+    },
+  });
+  
+  // Reset do form quando storeInfo mudar
+  useEffect(() => {
+    form.reset({
       name: storeInfo.name,
       description: storeInfo.description || '',
       cuisineType: storeInfo.cuisineType,
       deliveryFee: storeInfo.deliveryFee,
       minOrder: storeInfo.minOrder,
-    },
-  });
+    });
+  }, [storeInfo, form]);
   
   const handleLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,6 +70,7 @@ const AdminSettings = () => {
     reader.onload = () => {
       const result = reader.result as string;
       setLogoPreview(result);
+      setLogoChanged(true);
     };
     reader.readAsDataURL(file);
   };
@@ -59,16 +83,31 @@ const AdminSettings = () => {
     reader.onload = () => {
       const result = reader.result as string;
       setBannerPreview(result);
+      setBannerChanged(true);
     };
     reader.readAsDataURL(file);
   };
   
   const onSubmit = (data: FormData) => {
-    updateStoreInfo({
+    const updatedInfo = {
       ...data,
-      logo: logoPreview,
-      banner: bannerPreview,
-    });
+    };
+
+    // Só atualiza logo e banner se tiverem mudado
+    if (logoChanged) {
+      updatedInfo.logo = logoPreview;
+    }
+    
+    if (bannerChanged) {
+      updatedInfo.banner = bannerPreview;
+    }
+    
+    updateStoreInfo(updatedInfo);
+    
+    // Reseta os flags de mudança
+    setLogoChanged(false);
+    setBannerChanged(false);
+    
     toast.success('Configurações salvas com sucesso!');
   };
   
@@ -167,11 +206,21 @@ const AdminSettings = () => {
                     <FormLabel>Logo da loja</FormLabel>
                     <div className="mt-4">
                       <div className="h-40 w-40 rounded-lg bg-gray-100 overflow-hidden mb-4 mx-auto">
-                        <img 
-                          src={logoPreview} 
-                          alt="Logo preview" 
-                          className="h-full w-full object-cover"
-                        />
+                        {logoPreview ? (
+                          <img 
+                            src={logoPreview} 
+                            alt="Logo preview" 
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              console.error("Erro ao carregar logo:", e);
+                              e.currentTarget.src = "/placeholder.svg"; 
+                            }}
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center bg-gray-200">
+                            <Store className="h-10 w-10 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center justify-center">
                         <label 
@@ -199,11 +248,21 @@ const AdminSettings = () => {
                     <FormLabel>Banner da loja</FormLabel>
                     <div className="mt-4">
                       <div className="h-40 w-full rounded-lg bg-gray-100 overflow-hidden mb-4">
-                        <img 
-                          src={bannerPreview} 
-                          alt="Banner preview" 
-                          className="h-full w-full object-cover"
-                        />
+                        {bannerPreview ? (
+                          <img 
+                            src={bannerPreview} 
+                            alt="Banner preview" 
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              console.error("Erro ao carregar banner:", e);
+                              e.currentTarget.src = "/placeholder.svg"; 
+                            }}
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center bg-gray-200">
+                            <Image className="h-10 w-10 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center justify-center">
                         <label 

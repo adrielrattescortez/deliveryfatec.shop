@@ -5,6 +5,7 @@ import { StoreInfo } from '@/types/product';
 interface StoreContextType {
   storeInfo: StoreInfo;
   updateStoreInfo: (info: Partial<StoreInfo>) => void;
+  refreshStoreInfo: () => void;
 }
 
 const defaultStoreInfo: StoreInfo = {
@@ -21,23 +22,52 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [storeInfo, setStoreInfo] = useState<StoreInfo>(() => {
-    const savedInfo = localStorage.getItem('storeInfo');
-    return savedInfo ? JSON.parse(savedInfo) : defaultStoreInfo;
+    try {
+      const savedInfo = localStorage.getItem('storeInfo');
+      return savedInfo ? JSON.parse(savedInfo) : defaultStoreInfo;
+    } catch (error) {
+      console.error("Erro ao carregar informações da loja do localStorage:", error);
+      return defaultStoreInfo;
+    }
   });
 
   // Salvar informações da loja no localStorage sempre que ela mudar
   useEffect(() => {
-    localStorage.setItem('storeInfo', JSON.stringify(storeInfo));
+    try {
+      localStorage.setItem('storeInfo', JSON.stringify(storeInfo));
+    } catch (error) {
+      console.error("Erro ao salvar informações da loja no localStorage:", error);
+    }
   }, [storeInfo]);
 
   const updateStoreInfo = (info: Partial<StoreInfo>) => {
-    setStoreInfo(prevInfo => ({ ...prevInfo, ...info }));
+    setStoreInfo(prevInfo => {
+      const updatedInfo = { ...prevInfo, ...info };
+      try {
+        localStorage.setItem('storeInfo', JSON.stringify(updatedInfo));
+      } catch (error) {
+        console.error("Erro ao salvar informações atualizadas da loja:", error);
+      }
+      return updatedInfo;
+    });
+  };
+
+  const refreshStoreInfo = () => {
+    try {
+      const savedInfo = localStorage.getItem('storeInfo');
+      if (savedInfo) {
+        setStoreInfo(JSON.parse(savedInfo));
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar informações da loja do localStorage:", error);
+    }
   };
 
   return (
     <StoreContext.Provider value={{ 
       storeInfo, 
-      updateStoreInfo
+      updateStoreInfo,
+      refreshStoreInfo
     }}>
       {children}
     </StoreContext.Provider>
