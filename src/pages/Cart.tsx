@@ -46,7 +46,7 @@ const Cart = () => {
       
       <div className="max-w-4xl mx-auto p-4">
         <div className="flex items-center mb-6">
-          <button onClick={() => navigate(-1)} className="flex items-center text-gray-700 font-medium">
+          <button onClick={() => navigate('/')} className="flex items-center text-gray-700 font-medium">
             <ArrowLeft className="h-5 w-5 mr-2" />
             Voltar
           </button>
@@ -71,21 +71,27 @@ const Cart = () => {
                     <div className="flex-1">
                       <h3 className="font-medium mb-1">{item.name}</h3>
                       
-                      {Object.entries(item.selectedOptions).map(([optionId, variationIds]) => (
-                        <div key={optionId} className="text-sm text-gray-500 mb-1">
-                          {variationIds.map(variationId => (
-                            <span key={variationId} className="mr-2">
-                              • {variationId.split('-')[0]}
-                            </span>
+                      {Object.keys(item.selectedOptions).length > 0 && (
+                        <div className="text-sm text-gray-500 mb-2">
+                          <p>Opções selecionadas:</p>
+                          {Object.entries(item.selectedOptions).map(([optionId, variationIds]) => (
+                            <div key={optionId}>
+                              {variationIds.map(variationId => (
+                                <span key={variationId} className="mr-2">
+                                  • {variationId.includes('-') ? variationId.split('-')[1] || variationId : variationId}
+                                </span>
+                              ))}
+                            </div>
                           ))}
                         </div>
-                      ))}
+                      )}
                       
-                      <div className="flex items-center justify-between mt-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                         <div className="flex items-center border rounded-md">
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             className="px-3 py-1 text-gray-500"
+                            disabled={item.quantity <= 1}
                           >
                             <Minus className="h-4 w-4" />
                           </button>
@@ -110,6 +116,7 @@ const Cart = () => {
                           <button
                             onClick={() => removeFromCart(item.id)}
                             className="text-gray-400 hover:text-red-500"
+                            aria-label="Remover item"
                           >
                             <Trash className="h-5 w-5" />
                           </button>
@@ -161,6 +168,10 @@ const Cart = () => {
             >
               Finalizar Pedido
             </Button>
+            
+            <p className="text-xs text-gray-500 text-center mt-4">
+              Ao finalizar seu pedido, você será redirecionado para a página de pagamento
+            </p>
           </div>
         </div>
       </div>

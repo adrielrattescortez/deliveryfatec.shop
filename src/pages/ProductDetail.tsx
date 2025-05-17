@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import Header from '@/components/Header';
 import CartIcon from '@/components/CartIcon';
-import { FOOD_ITEMS } from './Index';
 import { ProductOption } from '@/types/product';
 import { useCart } from '@/contexts/CartContext';
 import { useStore } from '@/contexts/StoreContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,23 +21,52 @@ const ProductDetail = () => {
   const { storeInfo } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
+  const [product, setProduct] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Find the product by ID
-  const product = FOOD_ITEMS.find(item => item.id === id);
-  
-  if (!product) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Header restaurantName={storeInfo.name} showSearch={false} />
-        <div className="p-4 text-center">
-          <p>Produto não encontrado</p>
-          <Button onClick={() => navigate('/')} className="mt-4">
-            Voltar para a página inicial
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Fetch product data from Supabase
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setIsLoading(true);
+        
+        if (!id) return;
+        
+        const { data, error } = await supabase
+          .from('products')
+          .select(`
+            *,
+            categories (name)
+          `)
+          .eq('id', id)
+          .single();
+        
+        if (error) {
+          console.error("Error fetching product:", error);
+          toast.error("Erro ao carregar o produto");
+          return;
+        }
+        
+        if (data) {
+          setProduct({
+            id: data.id,
+            name: data.name,
+            description: data.description || '',
+            price: Number(data.price),
+            image: data.image_url || "https://source.unsplash.com/featured/?food",
+            category: data.categories?.name || "Sem categoria"
+          });
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        toast.error("Erro ao carregar o produto");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProduct();
+  }, [id]);
   
   // Example product variations for demonstration
   const productOptions: ProductOption[] = [
@@ -45,8 +75,8 @@ const ProductDetail = () => {
       title: 'Qual Sua Escolha? Não Fazemos Sem Cebola!',
       required: true,
       variations: [
-        { id: 'var-1', name: 'Esfiha de Carne', price: 7.95 },
-        { id: 'var-2', name: 'Esfiha carne Fechada', price: 10.75 }
+        { id: 'var-1', name: 'Opção Tradicional', price: 0 },
+        { id: 'var-2', name: 'Opção Especial', price: 3.00 }
       ]
     }
   ];
@@ -91,6 +121,8 @@ const ProductDetail = () => {
   };
   
   const calculateTotalPrice = () => {
+    if (!product) return 0;
+    
     let total = product.price;
     
     Object.entries(selectedOptions).forEach(([optionId, variationIds]) => {
@@ -109,6 +141,8 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
+    if (!product) return;
+    
     addToCart({
       id: `${product.id}-${Date.now()}`,
       productId: product.id,
@@ -123,9 +157,34 @@ const ProductDetail = () => {
     navigate('/cart');
   };
   
-  const isButtonDisabled = productOptions.some(option => {
+  const isButtonDisabled = !product || productOptions.some(option => {
     return option.required && (!selectedOptions[option.id] || selectedOptions[option.id].length === 0);
   });
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header restaurantName={storeInfo.name} showSearch={false} />
+        <div className="p-4 text-center">
+          <p>Carregando produto...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header restaurantName={storeInfo.name} showSearch={false} />
+        <div className="p-4 text-center">
+          <p>Produto não encontrado</p>
+          <Button onClick={() => navigate('/')} className="mt-4">
+            Voltar para a página inicial
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -153,7 +212,7 @@ const ProductDetail = () => {
       </div>
       
       <div className="bg-white p-4">
-        <h1 className="text-2xl font-bold">{product.name} - Escolha Qual Seu Tipo Preferido</h1>
+        <h1 className="text-2xl font-bold">{product.name}</h1>
         
         {product.description && (
           <p className="text-gray-700 mt-2 text-sm">
@@ -162,10 +221,7 @@ const ProductDetail = () => {
         )}
         
         <p className="mt-2 font-medium text-lg">
-          {product.price < 10 ? 
-            `a partir de R$ ${product.price.toFixed(2)}` : 
-            `R$ ${product.price.toFixed(2)}`
-          }
+          R$ {product.price.toFixed(2)}
         </p>
       </div>
       

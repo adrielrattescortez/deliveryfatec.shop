@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,6 +15,7 @@ import Header from '@/components/Header';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
 import { useStore } from '@/contexts/StoreContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome é obrigatório' }),
@@ -39,16 +40,18 @@ const Checkout = () => {
   const { currentUser } = useUser();
   const { storeInfo } = useStore();
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit_card' | 'pix'>('pix');
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Redirecionar se o carrinho estiver vazio
-  if (cartItems.length === 0) {
-    navigate('/cart');
-    return null;
-  }
+  useEffect(() => {
+    // Redirecionar se o carrinho estiver vazio
+    if (cartItems.length === 0) {
+      navigate('/cart');
+    }
+  }, [cartItems, navigate]);
   
   const defaultValues = currentUser ? {
-    name: currentUser.name,
-    email: currentUser.email,
+    name: currentUser.name || '',
+    email: currentUser.email || '',
     phone: currentUser.phone || '',
     street: currentUser.address?.street || '',
     number: currentUser.address?.number || '',
@@ -60,7 +63,18 @@ const Checkout = () => {
     change: '',
     notes: '',
   } : {
+    name: '',
+    email: '',
+    phone: '',
+    street: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    state: '',
+    zipCode: '',
     paymentMethod: 'pix' as const,
+    change: '',
+    notes: '',
   };
   
   const form = useForm<FormData>({
@@ -72,14 +86,86 @@ const Checkout = () => {
   const deliveryFee = storeInfo.deliveryFee;
   const total = subtotal + deliveryFee;
   
-  const onSubmit = (data: FormData) => {
-    // Aqui seria a integração com o backend para processar o pedido
-    console.log('Dados do pedido:', data, 'Itens:', cartItems, 'Total:', total);
-    
-    toast.success('Pedido realizado com sucesso!');
-    clearCart();
-    navigate('/customer/orders');
+  const onSubmit = async (data: FormData) => {
+    try {
+      setIsLoading(true);
+      
+      // Save user address if logged in
+      if (currentUser?.id) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: data.name,
+            phone: data.phone,
+            address: {
+              street: data.street,
+              number: data.number,
+              neighborhood: data.neighborhood,
+              city: data.city,
+              state: data.state,
+              zipCode: data.zipCode
+            }
+          })
+          .eq('id', currentUser.id);
+        
+        if (error) {
+          console.error("Error updating profile:", error);
+          // Continue with order even if profile update fails
+        }
+      }
+      
+      // Create order object
+      const orderData = {
+        user_id: currentUser?.id || null,
+        customer_name: data.name,
+        customer_email: data.email,
+        customer_phone: data.phone,
+        delivery_address: {
+          street: data.street,
+          number: data.number,
+          neighborhood: data.neighborhood,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode
+        },
+        items: cartItems.map(item => ({
+          product_id: item.productId,
+          name: item.name,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.totalPrice,
+          selected_options: item.selectedOptions
+        })),
+        subtotal: subtotal,
+        delivery_fee: deliveryFee,
+        total: total,
+        payment_method: data.paymentMethod,
+        payment_change: data.paymentMethod === 'cash' ? data.change : null,
+        notes: data.notes,
+        status: 'pending'
+      };
+      
+      // In a real app, we would send this to the backend
+      console.log('Dados do pedido:', orderData);
+      
+      // Simulate successful order
+      toast.success('Pedido realizado com sucesso!');
+      clearCart();
+      
+      // Redirect to orders page if logged in, otherwise to home
+      navigate(currentUser ? '/customer/orders' : '/');
+      
+    } catch (error) {
+      console.error('Erro ao finalizar pedido:', error);
+      toast.error('Ocorreu um erro ao finalizar o pedido. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
+  
+  if (cartItems.length === 0) {
+    return null; // UseEffect will redirect
+  }
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -339,8 +425,13 @@ const Checkout = () => {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full" size="lg">
-                Confirmar pedido
+              <Button 
+                type="submit" 
+                className="w-full" 
+                size="lg"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processando...' : 'Confirmar pedido'}
               </Button>
             </form>
           </Form>
