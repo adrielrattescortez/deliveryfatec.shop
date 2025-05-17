@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -44,15 +45,13 @@ const AdminLogin = () => {
       setIsSubmitting(true);
       console.log("Attempting admin login with:", data.email);
       
-      // Fixed: Store the login result and check it properly
-      const result = await adminLogin(data.email, data.password);
+      // Call the adminLogin function
+      await adminLogin(data.email, data.password);
       
-      // Check if login was successful based on how adminLogin is implemented
-      // Only show success message and navigate if adminLogin was successful
-      if (result && result.success) {
-        toast.success('Login de administrador realizado com sucesso!');
-        navigate('/admin');
-      }
+      // If we reach this line, it means the login was successful
+      // because adminLogin throws an error on failure
+      toast.success('Login de administrador realizado com sucesso!');
+      navigate('/admin');
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message || 'Credenciais de administrador inválidas ou falha no login.');
