@@ -22,6 +22,7 @@ export type CartItem = {
   quantity: number;
   image: string;
   selectedOptions: Record<string, string[]>;
+  selectedOptionsPrice?: number;
   totalPrice: number;
 };
 
@@ -51,4 +52,35 @@ export type StoreInfo = {
   deliveryFee: number;
   minOrder: number;
   cuisineType: string;
+};
+
+export type OrderStatus = 'pending' | 'processing' | 'delivering' | 'delivered' | 'cancelled';
+
+export type OrderItem = {
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  selectedOptions: Record<string, string[]>;
+  totalPrice: number;
+};
+
+export type Order = {
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  status: OrderStatus;
+  total: number;
+  deliveryFee: number;
+  address: {
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 };

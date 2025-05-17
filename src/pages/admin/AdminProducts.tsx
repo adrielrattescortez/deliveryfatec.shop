@@ -8,12 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Trash2, Search, PackageOpen, ImageOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types'; // Ajuste o caminho se necessário
-import SupabaseProductForm from '@/components/admin/SupabaseProductForm'; // Novo formulário
+import { Tables } from '@/integrations/supabase/types'; 
+import SupabaseProductForm from '@/components/admin/SupabaseProductForm';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 type ProductWithCategoryName = Tables<'products'> & {
-  categories: { name: string } | null; // Para buscar o nome da categoria
+  categories: { name: string } | null;
+  product_options?: Tables<'product_options'>[];
 };
 
 const AdminProducts = () => {
@@ -30,7 +31,8 @@ const AdminProducts = () => {
         .from('products')
         .select(`
           *,
-          categories ( name )
+          categories ( name ),
+          product_options ( * )
         `)
         .order('name', { ascending: true });
 
@@ -41,7 +43,7 @@ const AdminProducts = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setProducts(data as ProductWithCategoryName[] || []); // Cast aqui
+      setProducts(data as ProductWithCategoryName[] || []);
     } catch (error: any) {
       toast.error('Falha ao buscar produtos: ' + error.message);
     } finally {
@@ -51,14 +53,14 @@ const AdminProducts = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm]); // Refetch when searchTerm changes
+  }, [searchTerm]);
 
   const handleAddProduct = () => {
     setEditingProduct(null);
     setIsFormOpen(true);
   };
 
-  const handleEditProduct = (product: Tables<'products'>) => {
+  const handleEditProduct = (product: ProductWithCategoryName) => {
     setEditingProduct(product);
     setIsFormOpen(true);
   };
@@ -75,7 +77,7 @@ const AdminProducts = () => {
       if (error) throw error;
       
       toast.success(`Produto "${productName}" removido.`);
-      fetchProducts(); // Refresh list
+      fetchProducts();
     } catch (error: any) {
       toast.error('Erro ao remover produto: ' + error.message);
     }
@@ -84,7 +86,7 @@ const AdminProducts = () => {
   const onFormSuccess = () => {
     setIsFormOpen(false);
     setEditingProduct(null);
-    fetchProducts(); // Refresh product list
+    fetchProducts();
   };
   
   const onFormCancel = () => {
@@ -139,6 +141,7 @@ const AdminProducts = () => {
                     <TableHead>Categoria</TableHead>
                     <TableHead className="text-right">Preço</TableHead>
                     <TableHead className="hidden md:table-cell">Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Variantes</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -151,7 +154,7 @@ const AdminProducts = () => {
                             src={product.image_url} 
                             alt={product.name} 
                             className="h-12 w-12 object-cover rounded" 
-                           onError={(e) => (e.currentTarget.style.display = 'none')} // Hide on error
+                           onError={(e) => (e.currentTarget.style.display = 'none')} 
                           />
                         ) : (
                           <div className="h-12 w-12 flex items-center justify-center bg-gray-100 rounded text-gray-400">
@@ -165,6 +168,15 @@ const AdminProducts = () => {
                       <TableCell className="hidden md:table-cell">
                         {product.popular && <Badge variant="outline" className="mr-1 border-green-500 text-green-600">Popular</Badge>}
                         {product.vegetarian && <Badge variant="outline" className="border-blue-500 text-blue-600">Vegetariano</Badge>}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {product.product_options && product.product_options.length > 0 ? (
+                          <Badge variant="outline" className="bg-amber-50 text-amber-800">
+                            {product.product_options.length} opções
+                          </Badge>
+                        ) : (
+                          <span className="text-gray-400 italic">Sem variantes</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => handleEditProduct(product)} className="mr-2">
@@ -185,7 +197,6 @@ const AdminProducts = () => {
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl p-0 overflow-y-auto max-h-[90vh]">
-          {/* O SupabaseProductForm agora controla seu próprio Card e padding */}
           <SupabaseProductForm 
             product={editingProduct}
             onSuccess={onFormSuccess}

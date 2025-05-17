@@ -22,6 +22,12 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent onClick
     
+    // For products with options, redirect to product detail page instead of directly adding
+    if (item.hasOptions) {
+      navigate(`/product/${item.id}`);
+      return;
+    }
+    
     addToCart({
       id: `${item.id}-${Date.now()}`,
       productId: item.id,
@@ -76,7 +82,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4" />
-            <span>Adicionar</span>
+            <span>{item.hasOptions ? "Ver opções" : "Adicionar"}</span>
           </Button>
         </div>
       </div>

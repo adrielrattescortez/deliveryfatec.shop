@@ -1,75 +1,138 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Eye } from 'lucide-react';
+import { Search, Eye, PackageOpen } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { OrderStatus } from '@/types/product';
+import { format, parseISO } from 'date-fns';
 
-// Dados fictícios de pedidos para demonstração
-const DEMO_ORDERS = [
-  {
-    id: '1001',
-    customer: 'Maria Silva',
-    date: '12/05/2025 15:30',
-    status: 'processing',
-    total: 67.80,
-    items: 6
-  },
-  {
-    id: '1002',
-    customer: 'João Oliveira',
-    date: '12/05/2025 14:15',
-    status: 'delivering',
-    total: 45.50,
-    items: 3
-  },
-  {
-    id: '1003',
-    customer: 'Ana Santos',
-    date: '12/05/2025 12:45',
-    status: 'delivered',
-    total: 89.90,
-    items: 4
-  },
-  {
-    id: '1004',
-    customer: 'Carlos Mendes',
-    date: '11/05/2025 19:20',
-    status: 'delivered',
-    total: 36.70,
-    items: 2
-  },
-  {
-    id: '1005',
-    customer: 'Paulo Costa',
-    date: '11/05/2025 13:10',
-    status: 'cancelled',
-    total: 72.90,
-    items: 5
-  }
-];
+type Order = {
+  id: string;
+  user_id: string;
+  items: any[];
+  status: OrderStatus;
+  total: number;
+  delivery_fee: number;
+  address: any;
+  created_at: string;
+  updated_at: string;
+  profiles?: {
+    name: string;
+    phone: string;
+    email: string;
+  } | null;
+};
 
-const statusMap = {
-  processing: { label: 'Em preparação', color: 'bg-amber-500' },
-  delivering: { label: 'Em entrega', color: 'bg-blue-500' },
-  delivered: { label: 'Entregue', color: 'bg-green-500' },
-  cancelled: { label: 'Cancelado', color: 'bg-red-500' }
+const OrderStatusMap = {
+  'pending': { label: 'Pendente', color: 'bg-yellow-500' },
+  'processing': { label: 'Em preparação', color: 'bg-amber-500' },
+  'delivering': { label: 'Em entrega', color: 'bg-blue-500' },
+  'delivered': { label: 'Entregue', color: 'bg-green-500' },
+  'cancelled': { label: 'Cancelado', color: 'bg-red-500' }
 };
 
 const AdminOrders = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
-  const filteredOrders = DEMO_ORDERS.filter(order => {
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    const matchesSearch = 
-      order.id.includes(searchTerm) || 
-      order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    fetchOrders();
+  }, [statusFilter, searchTerm]);
+  
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('orders')
+        .select(`
+          *,
+          profiles (
+            name,
+            phone,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false });
       
-    return matchesStatus && matchesSearch;
-  });
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+      
+      if (searchTerm) {
+        query = query.or(`id.ilike.%${searchTerm}%,profiles.name.ilike.%${searchTerm}%,profiles.email.ilike.%${searchTerm}%`);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        throw error;
+      }
+      
+      setOrders(data || []);
+    } catch (error: any) {
+      toast.error(`Erro ao buscar pedidos: ${error.message}`);
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', orderId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setOrders(prev => prev.map(order => 
+        order.id === orderId 
+          ? { ...order, status: newStatus, updated_at: new Date().toISOString() } 
+          : order
+      ));
+      
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({
+          ...selectedOrder,
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        });
+      }
+      
+      toast.success('Status do pedido atualizado com sucesso');
+    } catch (error: any) {
+      toast.error(`Erro ao atualizar status: ${error.message}`);
+    }
+  };
+  
+  const viewOrderDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsOpen(true);
+  };
+  
+  const formatDate = (dateString: string) => {
+    try {
+      const date = parseISO(dateString);
+      return format(date, 'dd/MM/yyyy HH:mm');
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return dateString;
+    }
+  };
+  
+  const filteredOrders = orders;
   
   return (
     <div className="space-y-6">
@@ -100,6 +163,7 @@ const AdminOrders = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
                 <SelectItem value="processing">Em preparação</SelectItem>
                 <SelectItem value="delivering">Em entrega</SelectItem>
                 <SelectItem value="delivered">Entregue</SelectItem>
@@ -110,63 +174,198 @@ const AdminOrders = () => {
         </div>
         
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left pb-3 font-medium text-gray-500">Pedido</th>
-                <th className="text-left pb-3 font-medium text-gray-500">Cliente</th>
-                <th className="text-left pb-3 font-medium text-gray-500">Status</th>
-                <th className="text-left pb-3 font-medium text-gray-500 hidden md:table-cell">Data</th>
-                <th className="text-left pb-3 font-medium text-gray-500">Total</th>
-                <th className="text-right pb-3 font-medium text-gray-500">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.map((order) => (
-                <tr key={order.id} className="border-b last:border-0">
-                  <td className="py-4">
-                    <div>
-                      <p className="font-medium">#{order.id}</p>
-                      <p className="text-xs text-gray-500">{order.items} itens</p>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    {order.customer}
-                  </td>
-                  <td className="py-4">
-                    <Badge 
-                      variant="default" 
-                      className={`${statusMap[order.status as keyof typeof statusMap].color} hover:${statusMap[order.status as keyof typeof statusMap].color}`}
-                    >
-                      {statusMap[order.status as keyof typeof statusMap].label}
-                    </Badge>
-                  </td>
-                  <td className="py-4 text-gray-600 hidden md:table-cell">
-                    {order.date}
-                  </td>
-                  <td className="py-4 font-medium">
-                    R$ {order.total.toFixed(2)}
-                  </td>
-                  <td className="py-4 text-right">
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Eye className="h-4 w-4" />
-                      <span className="hidden md:inline">Ver detalhes</span>
-                    </Button>
-                  </td>
+          {loading ? (
+            <div className="py-8 text-center">Carregando pedidos...</div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="text-center py-10">
+              <PackageOpen className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="mt-4 text-lg font-medium text-gray-600">Nenhum pedido encontrado.</p>
+              <p className="text-sm text-gray-500">
+                {searchTerm || statusFilter !== 'all' ? 'Tente outros filtros.' : 'Não existem pedidos registrados.'}
+              </p>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left pb-3 font-medium text-gray-500">Pedido</th>
+                  <th className="text-left pb-3 font-medium text-gray-500">Cliente</th>
+                  <th className="text-left pb-3 font-medium text-gray-500">Status</th>
+                  <th className="text-left pb-3 font-medium text-gray-500 hidden md:table-cell">Data</th>
+                  <th className="text-left pb-3 font-medium text-gray-500">Total</th>
+                  <th className="text-right pb-3 font-medium text-gray-500">Ações</th>
                 </tr>
-              ))}
-              
-              {filteredOrders.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500">
-                    Nenhum pedido encontrado
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredOrders.map((order) => (
+                  <tr key={order.id} className="border-b last:border-0">
+                    <td className="py-4">
+                      <div>
+                        <p className="font-medium">#{order.id.slice(0, 8)}</p>
+                        <p className="text-xs text-gray-500">{order.items.length} itens</p>
+                      </div>
+                    </td>
+                    <td className="py-4">
+                      {order.profiles?.name || 'Cliente não encontrado'}
+                    </td>
+                    <td className="py-4">
+                      <Badge 
+                        variant="default" 
+                        className={`${OrderStatusMap[order.status]?.color || 'bg-gray-500'} hover:${OrderStatusMap[order.status]?.color || 'bg-gray-500'}`}
+                      >
+                        {OrderStatusMap[order.status]?.label || 'Desconhecido'}
+                      </Badge>
+                    </td>
+                    <td className="py-4 text-gray-600 hidden md:table-cell">
+                      {formatDate(order.created_at)}
+                    </td>
+                    <td className="py-4 font-medium">
+                      R$ {order.total.toFixed(2)}
+                    </td>
+                    <td className="py-4 text-right">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => viewOrderDetails(order)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden md:inline">Ver detalhes</span>
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </Card>
+      
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {selectedOrder && (
+            <div className="space-y-6 p-4">
+              <div className="flex justify-between items-center border-b pb-4">
+                <div>
+                  <h2 className="text-xl font-bold">Pedido #{selectedOrder.id.slice(0, 8)}</h2>
+                  <p className="text-sm text-gray-500">Realizado em {formatDate(selectedOrder.created_at)}</p>
+                </div>
+                <Badge 
+                  variant="default" 
+                  className={`${OrderStatusMap[selectedOrder.status]?.color || 'bg-gray-500'} hover:${OrderStatusMap[selectedOrder.status]?.color || 'bg-gray-500'}`}
+                >
+                  {OrderStatusMap[selectedOrder.status]?.label || 'Desconhecido'}
+                </Badge>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-2">Cliente</h3>
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <p className="font-medium">{selectedOrder.profiles?.name || 'Nome não disponível'}</p>
+                  <p>{selectedOrder.profiles?.email || 'Email não disponível'}</p>
+                  <p>{selectedOrder.profiles?.phone || 'Telefone não disponível'}</p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-2">Endereço de Entrega</h3>
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <p>{selectedOrder.address.street}, {selectedOrder.address.number}</p>
+                  <p>{selectedOrder.address.neighborhood}</p>
+                  <p>{selectedOrder.address.city}, {selectedOrder.address.state}</p>
+                  <p>{selectedOrder.address.zipCode}</p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-2">Itens do Pedido</h3>
+                <div className="space-y-2">
+                  {selectedOrder.items.map((item, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md">
+                      <div className="flex justify-between">
+                        <span className="font-medium">{item.quantity}x {item.name}</span>
+                        <span>R$ {item.totalPrice.toFixed(2)}</span>
+                      </div>
+                      {Object.entries(item.selectedOptions).length > 0 && (
+                        <div className="mt-1 text-sm text-gray-600">
+                          {Object.entries(item.selectedOptions).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-medium">{key}:</span>{' '}
+                              {Array.isArray(value) ? value.join(', ') : value}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="border-t pt-4">
+                <div className="flex justify-between mb-2">
+                  <span>Subtotal</span>
+                  <span>R$ {(selectedOrder.total - selectedOrder.delivery_fee).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span>Taxa de Entrega</span>
+                  <span>R$ {selectedOrder.delivery_fee.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>R$ {selectedOrder.total.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              <div className="border-t pt-4">
+                <h3 className="font-medium mb-3">Atualizar Status</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    size="sm"
+                    variant={selectedOrder.status === 'pending' ? 'default' : 'outline'}
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'pending')}
+                    disabled={selectedOrder.status === 'pending'}
+                  >
+                    Pendente
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant={selectedOrder.status === 'processing' ? 'default' : 'outline'}
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'processing')}
+                    disabled={selectedOrder.status === 'processing'}
+                  >
+                    Em Preparação
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant={selectedOrder.status === 'delivering' ? 'default' : 'outline'}
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'delivering')}
+                    disabled={selectedOrder.status === 'delivering'}
+                  >
+                    Em Entrega
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant={selectedOrder.status === 'delivered' ? 'default' : 'outline'}
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'delivered')}
+                    disabled={selectedOrder.status === 'delivered'}
+                  >
+                    Entregue
+                  </Button>
+                  <Button 
+                    size="sm"
+                    variant={selectedOrder.status === 'cancelled' ? 'default' : 'outline'}
+                    className="bg-red-100 text-red-700 hover:bg-red-200 hover:text-red-800"
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'cancelled')}
+                    disabled={selectedOrder.status === 'cancelled'}
+                  >
+                    Cancelado
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

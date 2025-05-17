@@ -51,12 +51,29 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           updatedItems[existingItemIndex].totalPrice = 
             updatedItems[existingItemIndex].price * updatedItems[existingItemIndex].quantity;
           
+          // Adicionar preços das opções selecionadas ao preço total
+          if (updatedItems[existingItemIndex].selectedOptionsPrice) {
+            updatedItems[existingItemIndex].totalPrice += 
+              updatedItems[existingItemIndex].selectedOptionsPrice * updatedItems[existingItemIndex].quantity;
+          }
+          
           toast.success('Item adicionado ao carrinho!');
           return updatedItems;
         } else {
           // Caso contrário, adicione um novo item
+          const newItemWithId = { 
+            ...newItem, 
+            id: `${newItem.productId}-${Date.now()}`,
+            totalPrice: newItem.price * newItem.quantity
+          };
+          
+          // Adicionar preços das opções selecionadas ao preço total
+          if (newItemWithId.selectedOptionsPrice) {
+            newItemWithId.totalPrice += newItemWithId.selectedOptionsPrice * newItemWithId.quantity;
+          }
+          
           toast.success('Item adicionado ao carrinho!');
-          return [...prevItems, { ...newItem, id: `${newItem.productId}-${Date.now()}` }];
+          return [...prevItems, newItemWithId];
         }
       } catch (error) {
         console.error("Error adding item to cart:", error);
@@ -81,11 +98,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (quantity < 1) return;
       
       setCartItems(prevItems => 
-        prevItems.map(item => 
-          item.id === id 
-            ? { ...item, quantity, totalPrice: item.price * quantity } 
-            : item
-        )
+        prevItems.map(item => {
+          if (item.id === id) {
+            const basePrice = item.price;
+            let totalPrice = basePrice * quantity;
+            
+            // Adicionar preço das opções selecionadas se houver
+            if (item.selectedOptionsPrice) {
+              totalPrice += item.selectedOptionsPrice * quantity;
+            }
+            
+            return { ...item, quantity, totalPrice };
+          }
+          return item;
+        })
       );
     } catch (error) {
       console.error("Error updating quantity:", error);
