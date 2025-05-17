@@ -9,25 +9,8 @@ import { Search, Eye, PackageOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { OrderStatus } from '@/types/product';
+import { OrderDB, OrderStatus } from '@/types/product';
 import { format, parseISO } from 'date-fns';
-
-type Order = {
-  id: string;
-  user_id: string;
-  items: any[];
-  status: OrderStatus;
-  total: number;
-  delivery_fee: number;
-  address: any;
-  created_at: string;
-  updated_at: string;
-  profiles?: {
-    name: string;
-    phone: string;
-    email: string;
-  } | null;
-};
 
 const OrderStatusMap = {
   'pending': { label: 'Pendente', color: 'bg-yellow-500' },
@@ -38,11 +21,11 @@ const OrderStatusMap = {
 };
 
 const AdminOrders = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderDB | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
   useEffect(() => {
@@ -117,7 +100,7 @@ const AdminOrders = () => {
     }
   };
   
-  const viewOrderDetails = (order: Order) => {
+  const viewOrderDetails = (order: OrderDB) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
   };
@@ -291,7 +274,7 @@ const AdminOrders = () => {
                           {Object.entries(item.selectedOptions).map(([key, value]) => (
                             <div key={key}>
                               <span className="font-medium">{key}:</span>{' '}
-                              {Array.isArray(value) ? value.join(', ') : value}
+                              {Array.isArray(value) ? value.join(', ') : String(value)}
                             </div>
                           ))}
                         </div>

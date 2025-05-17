@@ -116,3 +116,28 @@ export type OptionVariationDB = {
   created_at?: string;
   updated_at?: string;
 };
+
+// Supabase Orders Database Type
+export type OrderDB = {
+  id: string;
+  user_id: string;
+  items: OrderItem[];
+  status: OrderStatus;
+  total: number;
+  delivery_fee: number;
+  address: {
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  created_at: string;
+  updated_at: string;
+  profiles?: {
+    name: string;
+    phone: string;
+    email: string;
+  } | null;
+};
