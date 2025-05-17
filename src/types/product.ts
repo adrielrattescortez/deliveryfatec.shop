@@ -84,3 +84,15 @@ export type Order = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type FoodItem = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  description?: string;
+  popular?: boolean;
+  vegetarian?: boolean;
+  hasOptions?: boolean;
+  category?: string;
+};

@@ -32,50 +32,48 @@ import CustomerRoute from "./components/CustomerRoute";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <UserProvider>
-          <StoreProvider>
-            <CartProvider>
+  <QueryClientProvider client={queryClient}>
+    <UserProvider>
+      <StoreProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <TooltipProvider>
               <Toaster />
               <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/admin-login" element={<AdminLogin />} />
-                  <Route path="/admin-register" element={<AdminRegister />} />
-                  <Route path="/register" element={<Register />} />
-                  
-                  {/* Rotas do cliente */}
-                  <Route path="/customer" element={<CustomerRoute />}>
-                    <Route path="" element={<CustomerAccount />} />
-                    <Route path="orders" element={<CustomerOrders />} />
-                    <Route path="profile" element={<CustomerProfile />} />
-                  </Route>
-                  
-                  {/* Rotas do administrador */}
-                  <Route path="/admin" element={<AdminRoute />}>
-                    <Route path="" element={<AdminDashboard />} />
-                    <Route path="products" element={<AdminProducts />} />
-                    <Route path="categories" element={<AdminCategories />} />
-                    <Route path="orders" element={<AdminOrders />} />
-                    <Route path="settings" element={<AdminSettings />} />
-                  </Route>
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </CartProvider>
-          </StoreProvider>
-        </UserProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/admin-login" element={<AdminLogin />} />
+                <Route path="/admin-register" element={<AdminRegister />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* Rotas do cliente */}
+                <Route path="/customer" element={<CustomerRoute />}>
+                  <Route path="" element={<CustomerAccount />} />
+                  <Route path="orders" element={<CustomerOrders />} />
+                  <Route path="profile" element={<CustomerProfile />} />
+                </Route>
+                
+                {/* Rotas do administrador */}
+                <Route path="/admin" element={<AdminRoute />}>
+                  <Route path="" element={<AdminDashboard />} />
+                  <Route path="products" element={<AdminProducts />} />
+                  <Route path="categories" element={<AdminCategories />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </TooltipProvider>
+          </BrowserRouter>
+        </CartProvider>
+      </StoreProvider>
+    </UserProvider>
+  </QueryClientProvider>
 );
 
 export default App;

@@ -7,7 +7,7 @@ import { useCart } from '@/contexts/CartContext';
 import type { FoodItem } from './FeaturedItems';
 
 type MenuItemProps = {
-  item: FoodItem;
+  item: FoodItem & { hasOptions?: boolean };
   featured?: boolean;
 };
 
