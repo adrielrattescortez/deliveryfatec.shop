@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
+import { ProductOptionDB, OptionVariationDB } from '@/types/product';
 import { toast } from 'sonner';
 import { X, Plus } from 'lucide-react';
 
@@ -56,7 +56,7 @@ interface SupabaseProductFormProps {
 const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSuccess, onCancel }) => {
   const [categories, setCategories] = useState<Tables<'categories'>[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [productOptions, setProductOptions] = useState<Tables<'product_options'>[]>([]);
+  const [productOptions, setProductOptions] = useState<ProductOptionDB[]>([]);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -96,24 +96,46 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
     const fetchProductOptions = async () => {
       if (!product?.id) return;
       
-      const { data, error } = await supabase
-        .from('product_options')
-        .select(`*, option_variations(*)`)
-        .eq('product_id', product.id)
-        .order('title');
+      try {
+        const { data: optionsData, error: optionsError } = await supabase
+          .from('product_options')
+          .select('*')
+          .eq('product_id', product.id)
+          .order('title');
         
-      if (error) {
-        toast.error("Erro ao buscar opções do produto.");
-        console.error(error);
-      } else if (data) {
-        setProductOptions(data);
+        if (optionsError) throw optionsError;
+        
+        if (!optionsData || optionsData.length === 0) {
+          setProductOptions([]);
+          form.setValue('product_options', []);
+          return;
+        }
+        
+        const optionsWithVariations: ProductOptionDB[] = [];
+        
+        for (const option of optionsData) {
+          const { data: variationsData, error: variationsError } = await supabase
+            .from('option_variations')
+            .select('*')
+            .eq('option_id', option.id)
+            .order('name');
+          
+          if (variationsError) throw variationsError;
+          
+          optionsWithVariations.push({
+            ...option,
+            option_variations: variationsData || []
+          });
+        }
+        
+        setProductOptions(optionsWithVariations);
         
         // Transform data for form
-        const formattedOptions = data.map((option) => ({
+        const formattedOptions = optionsWithVariations.map((option) => ({
           id: option.id,
           title: option.title,
           required: option.required,
-          variations: option.option_variations ? option.option_variations.map((variation: any) => ({
+          variations: option.option_variations ? option.option_variations.map((variation) => ({
             id: variation.id,
             name: variation.name,
             price: Number(variation.price || 0),
@@ -121,6 +143,9 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
         }));
         
         form.setValue('product_options', formattedOptions);
+      } catch (error: any) {
+        toast.error("Erro ao buscar opções do produto: " + error.message);
+        console.error(error);
       }
     };
     
@@ -221,8 +246,8 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
           .select('id')
           .eq('product_id', productId);
         
-        const existingOptionIds = new Set(existingOptions?.map(o => o.id) || []);
-        const newOptionIds = new Set(formData.product_options.filter(o => o.id).map(o => o.id));
+        const existingOptionIds = new Set((existingOptions || []).map(o => o.id) || []);
+        const newOptionIds = new Set(formData.product_options.filter(o => o.id).map(o => o.id as string));
         
         // Delete options that no longer exist
         const optionsToDelete = [...existingOptionIds].filter(id => !newOptionIds.has(id));
@@ -255,8 +280,8 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
               .select('id')
               .eq('option_id', option.id);
               
-            const existingVariationIds = new Set(existingVariations?.map(v => v.id) || []);
-            const newVariationIds = new Set(option.variations.filter(v => v.id).map(v => v.id));
+            const existingVariationIds = new Set((existingVariations || []).map(v => v.id) || []);
+            const newVariationIds = new Set(option.variations.filter(v => v.id).map(v => v.id as string));
             
             // Delete variations that no longer exist
             const variationsToDelete = [...existingVariationIds].filter(id => !newVariationIds.has(id));

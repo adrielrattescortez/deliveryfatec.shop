@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
-import type { FoodItem } from './FeaturedItems';
+import type { FoodItem } from '@/types/product';
 
 type MenuItemProps = {
-  item: FoodItem & { hasOptions?: boolean };
+  item: FoodItem;
   featured?: boolean;
 };
 

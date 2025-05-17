@@ -96,3 +96,23 @@ export type FoodItem = {
   hasOptions?: boolean;
   category?: string;
 };
+
+// Supabase database types
+export type ProductOptionDB = {
+  id: string;
+  product_id: string;
+  title: string;
+  required: boolean;
+  created_at?: string;
+  updated_at?: string;
+  option_variations?: OptionVariationDB[];
+};
+
+export type OptionVariationDB = {
+  id: string;
+  option_id: string;
+  name: string;
+  price: number;
+  created_at?: string;
+  updated_at?: string;
+};

@@ -14,11 +14,14 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 type ProductWithCategoryName = Tables<'products'> & {
   categories: { name: string } | null;
-  product_options?: Tables<'product_options'>[];
+};
+
+type ProductWithOptions = ProductWithCategoryName & {
+  product_options_count?: number;
 };
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState<ProductWithCategoryName[]>([]);
+  const [products, setProducts] = useState<ProductWithOptions[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -31,8 +34,7 @@ const AdminProducts = () => {
         .from('products')
         .select(`
           *,
-          categories ( name ),
-          product_options ( * )
+          categories ( name )
         `)
         .order('name', { ascending: true });
 
@@ -43,7 +45,21 @@ const AdminProducts = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setProducts(data as ProductWithCategoryName[] || []);
+      
+      // For each product, get the count of associated options
+      const productsWithOptions = await Promise.all((data || []).map(async (product) => {
+        const { count, error } = await supabase
+          .from('product_options')
+          .select('id', { count: 'exact', head: true })
+          .eq('product_id', product.id);
+          
+        return {
+          ...product,
+          product_options_count: error ? 0 : count || 0
+        };
+      }));
+      
+      setProducts(productsWithOptions);
     } catch (error: any) {
       toast.error('Falha ao buscar produtos: ' + error.message);
     } finally {
@@ -170,9 +186,9 @@ const AdminProducts = () => {
                         {product.vegetarian && <Badge variant="outline" className="border-blue-500 text-blue-600">Vegetariano</Badge>}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {product.product_options && product.product_options.length > 0 ? (
+                        {product.product_options_count && product.product_options_count > 0 ? (
                           <Badge variant="outline" className="bg-amber-50 text-amber-800">
-                            {product.product_options.length} opções
+                            {product.product_options_count} opções
                           </Badge>
                         ) : (
                           <span className="text-gray-400 italic">Sem variantes</span>
