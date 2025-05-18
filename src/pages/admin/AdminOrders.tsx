@@ -61,24 +61,38 @@ const AdminOrders = () => {
         throw error;
       }
 
-      // Process the data to convert JSON string items to proper OrderItem[] objects
-      const processedOrders: OrderDB[] = data?.map(order => {
+      // Process the data to properly parse JSON fields and handle type compatibility
+      const processedOrders: OrderDB[] = (data || []).map(order => {
         // Parse items if it's a string
-        const parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+        const parsedItems = typeof order.items === 'string' 
+          ? JSON.parse(order.items) 
+          : (Array.isArray(order.items) ? order.items : []);
         
         // Parse address if it's a string
-        const parsedAddress = typeof order.address === 'string' ? JSON.parse(order.address) : order.address;
+        const parsedAddress = typeof order.address === 'string' 
+          ? JSON.parse(order.address) 
+          : order.address;
         
         // Handle potentially missing profiles data
-        const profiles = order.profiles && !('error' in order.profiles) ? order.profiles : null;
-        
+        let profilesData = null;
+        if (order.profiles && typeof order.profiles === 'object' && !('error' in order.profiles)) {
+          profilesData = order.profiles;
+        }
+
+        // Return properly typed order object
         return {
-          ...order,
+          id: order.id,
+          user_id: order.user_id,
           items: parsedItems,
+          status: order.status,
+          total: order.total,
+          delivery_fee: order.delivery_fee,
           address: parsedAddress,
-          profiles
-        };
-      }) || [];
+          created_at: order.created_at || '',
+          updated_at: order.updated_at || '',
+          profiles: profilesData
+        } as OrderDB;
+      });
       
       setOrders(processedOrders);
     } catch (error: any) {
@@ -89,7 +103,7 @@ const AdminOrders = () => {
     }
   };
   
-  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       const { error } = await supabase
         .from('orders')
@@ -120,7 +134,7 @@ const AdminOrders = () => {
   };
   
   const viewOrderDetails = (order: OrderDB) => {
-    // Ensure items is parsed as array if it's a string
+    // Ensure all fields are properly parsed before displaying details
     const parsedOrder = {
       ...order,
       items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
@@ -223,9 +237,9 @@ const AdminOrders = () => {
                       <td className="py-4">
                         <Badge 
                           variant="default" 
-                          className={`${OrderStatusMap[order.status]?.color || 'bg-gray-500'} hover:${OrderStatusMap[order.status]?.color || 'bg-gray-500'}`}
+                          className={`${OrderStatusMap[order.status as OrderStatus]?.color || 'bg-gray-500'} hover:${OrderStatusMap[order.status as OrderStatus]?.color || 'bg-gray-500'}`}
                         >
-                          {OrderStatusMap[order.status]?.label || 'Desconhecido'}
+                          {OrderStatusMap[order.status as OrderStatus]?.label || 'Desconhecido'}
                         </Badge>
                       </td>
                       <td className="py-4 text-gray-600 hidden md:table-cell">
@@ -265,9 +279,9 @@ const AdminOrders = () => {
                 </div>
                 <Badge 
                   variant="default" 
-                  className={`${OrderStatusMap[selectedOrder.status]?.color || 'bg-gray-500'} hover:${OrderStatusMap[selectedOrder.status]?.color || 'bg-gray-500'}`}
+                  className={`${OrderStatusMap[selectedOrder.status as OrderStatus]?.color || 'bg-gray-500'} hover:${OrderStatusMap[selectedOrder.status as OrderStatus]?.color || 'bg-gray-500'}`}
                 >
-                  {OrderStatusMap[selectedOrder.status]?.label || 'Desconhecido'}
+                  {OrderStatusMap[selectedOrder.status as OrderStatus]?.label || 'Desconhecido'}
                 </Badge>
               </div>
               

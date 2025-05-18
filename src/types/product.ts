@@ -1,3 +1,4 @@
+
 export type ProductVariation = {
   id: string;
   name: string;
@@ -121,7 +122,7 @@ export type OrderDB = {
   id: string;
   user_id: string;
   items: OrderItem[] | string; // Can be string when first received from database
-  status: OrderStatus;
+  status: string; // Changed from OrderStatus to accept any string from the database
   total: number;
   delivery_fee: number;
   address: {
@@ -138,5 +139,5 @@ export type OrderDB = {
     name: string;
     phone: string;
     email: string;
-  } | null;
+  } | null | any; // Made more flexible to handle error states or unexpected formats
 };
