@@ -310,7 +310,7 @@ const AdminOrders = () => {
                         <span className="font-medium">{item.quantity}x {item.name}</span>
                         <span>R$ {item.totalPrice.toFixed(2)}</span>
                       </div>
-                      {Object.entries(item.selectedOptions).length > 0 && (
+                      {item.selectedOptions && Object.entries(item.selectedOptions).length > 0 && (
                         <div className="mt-1 text-sm text-gray-600">
                           {Object.entries(item.selectedOptions).map(([key, value]) => (
                             <div key={key}>
