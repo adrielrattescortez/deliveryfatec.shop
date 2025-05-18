@@ -62,13 +62,25 @@ const AdminOrders = () => {
       }
 
       // Process the data to convert JSON string items to proper OrderItem[] objects
-      const processedOrders = data?.map(order => ({
-        ...order,
-        items: Array.isArray(order.items) ? order.items : JSON.parse(order.items as string),
-        address: typeof order.address === 'string' ? JSON.parse(order.address) : order.address
-      })) as OrderDB[];
+      const processedOrders: OrderDB[] = data?.map(order => {
+        // Parse items if it's a string
+        const parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+        
+        // Parse address if it's a string
+        const parsedAddress = typeof order.address === 'string' ? JSON.parse(order.address) : order.address;
+        
+        // Handle potentially missing profiles data
+        const profiles = order.profiles && !('error' in order.profiles) ? order.profiles : null;
+        
+        return {
+          ...order,
+          items: parsedItems,
+          address: parsedAddress,
+          profiles
+        };
+      }) || [];
       
-      setOrders(processedOrders || []);
+      setOrders(processedOrders);
     } catch (error: any) {
       toast.error(`Erro ao buscar pedidos: ${error.message}`);
       console.error('Error fetching orders:', error);
@@ -108,7 +120,14 @@ const AdminOrders = () => {
   };
   
   const viewOrderDetails = (order: OrderDB) => {
-    setSelectedOrder(order);
+    // Ensure items is parsed as array if it's a string
+    const parsedOrder = {
+      ...order,
+      items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
+      address: typeof order.address === 'string' ? JSON.parse(order.address) : order.address
+    };
+    
+    setSelectedOrder(parsedOrder);
     setIsDetailsOpen(true);
   };
   
@@ -187,44 +206,48 @@ const AdminOrders = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-b last:border-0">
-                    <td className="py-4">
-                      <div>
-                        <p className="font-medium">#{order.id.slice(0, 8)}</p>
-                        <p className="text-xs text-gray-500">{order.items.length} itens</p>
-                      </div>
-                    </td>
-                    <td className="py-4">
-                      {order.profiles?.name || 'Cliente não encontrado'}
-                    </td>
-                    <td className="py-4">
-                      <Badge 
-                        variant="default" 
-                        className={`${OrderStatusMap[order.status]?.color || 'bg-gray-500'} hover:${OrderStatusMap[order.status]?.color || 'bg-gray-500'}`}
-                      >
-                        {OrderStatusMap[order.status]?.label || 'Desconhecido'}
-                      </Badge>
-                    </td>
-                    <td className="py-4 text-gray-600 hidden md:table-cell">
-                      {formatDate(order.created_at)}
-                    </td>
-                    <td className="py-4 font-medium">
-                      R$ {order.total.toFixed(2)}
-                    </td>
-                    <td className="py-4 text-right">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2"
-                        onClick={() => viewOrderDetails(order)}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span className="hidden md:inline">Ver detalhes</span>
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredOrders.map((order) => {
+                  // Calculate items length safely
+                  const itemsArray = Array.isArray(order.items) ? order.items : [];
+                  return (
+                    <tr key={order.id} className="border-b last:border-0">
+                      <td className="py-4">
+                        <div>
+                          <p className="font-medium">#{order.id.slice(0, 8)}</p>
+                          <p className="text-xs text-gray-500">{itemsArray.length} itens</p>
+                        </div>
+                      </td>
+                      <td className="py-4">
+                        {order.profiles?.name || 'Cliente não encontrado'}
+                      </td>
+                      <td className="py-4">
+                        <Badge 
+                          variant="default" 
+                          className={`${OrderStatusMap[order.status]?.color || 'bg-gray-500'} hover:${OrderStatusMap[order.status]?.color || 'bg-gray-500'}`}
+                        >
+                          {OrderStatusMap[order.status]?.label || 'Desconhecido'}
+                        </Badge>
+                      </td>
+                      <td className="py-4 text-gray-600 hidden md:table-cell">
+                        {formatDate(order.created_at)}
+                      </td>
+                      <td className="py-4 font-medium">
+                        R$ {order.total.toFixed(2)}
+                      </td>
+                      <td className="py-4 text-right">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-2"
+                          onClick={() => viewOrderDetails(order)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="hidden md:inline">Ver detalhes</span>
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -260,17 +283,23 @@ const AdminOrders = () => {
               <div>
                 <h3 className="font-medium mb-2">Endereço de Entrega</h3>
                 <div className="bg-gray-50 p-3 rounded-md">
-                  <p>{selectedOrder.address.street}, {selectedOrder.address.number}</p>
-                  <p>{selectedOrder.address.neighborhood}</p>
-                  <p>{selectedOrder.address.city}, {selectedOrder.address.state}</p>
-                  <p>{selectedOrder.address.zipCode}</p>
+                  {typeof selectedOrder.address === 'object' && selectedOrder.address !== null ? (
+                    <>
+                      <p>{selectedOrder.address.street}, {selectedOrder.address.number}</p>
+                      <p>{selectedOrder.address.neighborhood}</p>
+                      <p>{selectedOrder.address.city}, {selectedOrder.address.state}</p>
+                      <p>{selectedOrder.address.zipCode}</p>
+                    </>
+                  ) : (
+                    <p>Endereço não disponível</p>
+                  )}
                 </div>
               </div>
               
               <div>
                 <h3 className="font-medium mb-2">Itens do Pedido</h3>
                 <div className="space-y-2">
-                  {selectedOrder.items.map((item, index) => (
+                  {Array.isArray(selectedOrder.items) && selectedOrder.items.map((item, index) => (
                     <div key={index} className="bg-gray-50 p-3 rounded-md">
                       <div className="flex justify-between">
                         <span className="font-medium">{item.quantity}x {item.name}</span>

@@ -1,4 +1,3 @@
-
 export type ProductVariation = {
   id: string;
   name: string;
