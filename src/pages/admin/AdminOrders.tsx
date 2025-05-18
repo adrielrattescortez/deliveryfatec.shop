@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -61,25 +60,20 @@ const AdminOrders = () => {
         throw error;
       }
 
-      // Process the data to properly parse JSON fields and handle type compatibility
       const processedOrders: OrderDB[] = (data || []).map(order => {
-        // Parse items if it's a string
         const parsedItems = typeof order.items === 'string' 
           ? JSON.parse(order.items) 
           : (Array.isArray(order.items) ? order.items : []);
         
-        // Parse address if it's a string
         const parsedAddress = typeof order.address === 'string' 
           ? JSON.parse(order.address) 
           : order.address;
         
-        // Handle potentially missing profiles data
         let profilesData = null;
         if (order.profiles && typeof order.profiles === 'object' && !('error' in order.profiles)) {
           profilesData = order.profiles;
         }
 
-        // Return properly typed order object
         return {
           id: order.id,
           user_id: order.user_id,
@@ -112,7 +106,6 @@ const AdminOrders = () => {
       
       if (error) throw error;
       
-      // Update local state
       setOrders(prev => prev.map(order => 
         order.id === orderId 
           ? { ...order, status: newStatus, updated_at: new Date().toISOString() } 
@@ -134,7 +127,6 @@ const AdminOrders = () => {
   };
   
   const viewOrderDetails = (order: OrderDB) => {
-    // Ensure all fields are properly parsed before displaying details
     const parsedOrder = {
       ...order,
       items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
@@ -221,7 +213,6 @@ const AdminOrders = () => {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => {
-                  // Calculate items length safely
                   const itemsArray = Array.isArray(order.items) ? order.items : [];
                   return (
                     <tr key={order.id} className="border-b last:border-0">
