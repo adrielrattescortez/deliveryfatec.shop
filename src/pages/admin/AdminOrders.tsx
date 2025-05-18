@@ -9,7 +9,7 @@ import { Search, Eye, PackageOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { OrderDB, OrderStatus } from '@/types/product';
+import { OrderDB, OrderStatus, OrderItem } from '@/types/product';
 import { format, parseISO } from 'date-fns';
 
 const OrderStatusMap = {
@@ -60,8 +60,15 @@ const AdminOrders = () => {
       if (error) {
         throw error;
       }
+
+      // Process the data to convert JSON string items to proper OrderItem[] objects
+      const processedOrders = data?.map(order => ({
+        ...order,
+        items: Array.isArray(order.items) ? order.items : JSON.parse(order.items as string),
+        address: typeof order.address === 'string' ? JSON.parse(order.address) : order.address
+      })) as OrderDB[];
       
-      setOrders(data || []);
+      setOrders(processedOrders || []);
     } catch (error: any) {
       toast.error(`Erro ao buscar pedidos: ${error.message}`);
       console.error('Error fetching orders:', error);

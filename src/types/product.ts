@@ -121,7 +121,7 @@ export type OptionVariationDB = {
 export type OrderDB = {
   id: string;
   user_id: string;
-  items: OrderItem[];
+  items: OrderItem[] | string; // Can be string when first received from database
   status: OrderStatus;
   total: number;
   delivery_fee: number;
@@ -132,7 +132,7 @@ export type OrderDB = {
     city: string;
     state: string;
     zipCode: string;
-  };
+  } | string; // Can be string when first received from database
   created_at: string;
   updated_at: string;
   profiles?: {
