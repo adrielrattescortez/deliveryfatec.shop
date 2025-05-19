@@ -27,7 +27,7 @@ const formSchema = z.object({
   city: z.string().min(2, { message: 'Cidade é obrigatória' }),
   state: z.string().min(2, { message: 'Estado é obrigatório' }),
   zipCode: z.string().min(5, { message: 'CEP é obrigatório' }),
-  paymentMethod: z.enum(['cash', 'credit_card', 'pix']),
+  paymentMethod: z.enum(['cash', 'credit_card', 'pix', 'stripe']),
   change: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -39,8 +39,10 @@ const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { currentUser } = useUser();
   const { storeInfo } = useStore();
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit_card' | 'pix'>('pix');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit_card' | 'pix' | 'stripe'>('pix');
   const [isLoading, setIsLoading] = useState(false);
+  const [isStripeLoading, setIsStripeLoading] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   
   useEffect(() => {
     // Redirecionar se o carrinho estiver vazio
@@ -86,9 +88,61 @@ const Checkout = () => {
   const deliveryFee = storeInfo.deliveryFee;
   const total = subtotal + deliveryFee;
   
+  const createStripePaymentIntent = async () => {
+    try {
+      setIsStripeLoading(true);
+      
+      // Chamada à função Edge do Supabase para criar o PaymentIntent
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+        body: {
+          amount: total,
+          currency: 'brl',
+          metadata: {
+            customer_name: form.getValues('name'),
+            customer_email: form.getValues('email')
+          }
+        }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      // Salvar o Client Secret para uso posterior
+      setClientSecret(data.clientSecret);
+      
+      // Abrir a página de pagamento do Stripe em uma nova aba
+      if (data.clientSecret) {
+        const stripeUrl = `https://checkout.stripe.com/pay/${data.clientSecret}`;
+        window.open(stripeUrl, '_blank');
+        toast.success('Redirecionando para a página de pagamento');
+      }
+      
+      return data.paymentIntentId;
+      
+    } catch (error) {
+      console.error('Erro ao criar intenção de pagamento:', error);
+      toast.error('Erro ao processar pagamento. Tente novamente.');
+      return null;
+    } finally {
+      setIsStripeLoading(false);
+    }
+  };
+  
   const onSubmit = async (data: FormData) => {
     try {
       setIsLoading(true);
+      
+      // Se o método de pagamento é Stripe, criar PaymentIntent
+      let paymentIntentId = null;
+      if (data.paymentMethod === 'stripe') {
+        paymentIntentId = await createStripePaymentIntent();
+        // Se não conseguiu criar o PaymentIntent, interromper o processo
+        if (!paymentIntentId) {
+          setIsLoading(false);
+          return;
+        }
+      }
       
       // Save user address if logged in
       if (currentUser?.id) {
@@ -110,7 +164,6 @@ const Checkout = () => {
         
         if (error) {
           console.error("Error updating profile:", error);
-          // Continue with order even if profile update fails
         }
       }
       
@@ -141,14 +194,20 @@ const Checkout = () => {
         total: total,
         payment_method: data.paymentMethod,
         payment_change: data.paymentMethod === 'cash' ? data.change : null,
+        payment_intent_id: paymentIntentId,
         notes: data.notes,
-        status: 'pending'
+        status: data.paymentMethod === 'stripe' ? 'awaiting_payment' : 'pending'
       };
       
-      // In a real app, we would send this to the backend
-      console.log('Dados do pedido:', orderData);
+      // Salvar o pedido no Supabase
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert([orderData]);
       
-      // Simulate successful order
+      if (orderError) {
+        throw new Error(`Erro ao salvar pedido: ${orderError.message}`);
+      }
+      
       toast.success('Pedido realizado com sucesso!');
       clearCart();
       
@@ -327,13 +386,20 @@ const Checkout = () => {
                     <FormItem>
                       <FormControl>
                         <RadioGroup
-                          onValueChange={(value: 'cash' | 'credit_card' | 'pix') => {
+                          onValueChange={(value: 'cash' | 'credit_card' | 'pix' | 'stripe') => {
                             field.onChange(value);
                             setPaymentMethod(value);
                           }}
                           value={field.value}
                           className="space-y-3"
                         >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="stripe" id="stripe" />
+                            <FormLabel htmlFor="stripe" className="font-normal cursor-pointer">
+                              Cartão de crédito/débito online (Stripe)
+                            </FormLabel>
+                          </div>
+                          
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="pix" id="pix" />
                             <FormLabel htmlFor="pix" className="font-normal cursor-pointer">
@@ -376,6 +442,14 @@ const Checkout = () => {
                         </FormItem>
                       )}
                     />
+                  </div>
+                )}
+                
+                {paymentMethod === 'stripe' && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                    <p className="text-sm text-blue-700">
+                      Ao finalizar o pedido, você será redirecionado para a página segura de pagamento do Stripe.
+                    </p>
                   </div>
                 )}
               </div>
@@ -429,9 +503,9 @@ const Checkout = () => {
                 type="submit" 
                 className="w-full" 
                 size="lg"
-                disabled={isLoading}
+                disabled={isLoading || isStripeLoading}
               >
-                {isLoading ? 'Processando...' : 'Confirmar pedido'}
+                {isLoading || isStripeLoading ? 'Processando...' : 'Confirmar pedido'}
               </Button>
             </form>
           </Form>
