@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
@@ -28,7 +28,7 @@ const AdminLogin = () => {
   useEffect(() => {
     if (currentUser && isAdmin) {
       console.log("Admin already logged in, redirecting to admin dashboard");
-      navigate('/admin');
+      navigate('/admin', { replace: true });
     }
   }, [currentUser, isAdmin, navigate]);
   
@@ -49,9 +49,8 @@ const AdminLogin = () => {
       await adminLogin(data.email, data.password);
       
       // If we reach this line, it means the login was successful
-      // because adminLogin throws an error on failure
       toast.success('Login de administrador realizado com sucesso!');
-      navigate('/admin');
+      navigate('/admin', { replace: true });
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message || 'Credenciais de administrador inválidas ou falha no login.');
@@ -61,16 +60,19 @@ const AdminLogin = () => {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-700 p-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Área do Administrador</h1>
-          <p className="mt-2 text-gray-600">
-            Acesse o painel de controle
+          <div className="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+            <ShieldCheck className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white">Área do Administrador</h1>
+          <p className="mt-2 text-slate-300">
+            Acesse o painel de controle administrativo
           </p>
         </div>
         
-        <div className="bg-white p-8 shadow-sm rounded-lg">
+        <div className="bg-white p-8 shadow-xl rounded-lg">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -120,7 +122,7 @@ const AdminLogin = () => {
               />
               
               <div className="pt-2">
-                <Button type="submit" className="w-full" size="lg" disabled={loading || isSubmitting}>
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" size="lg" disabled={loading || isSubmitting}>
                   {isSubmitting ? 'Entrando...' : 'Entrar como Administrador'}
                 </Button>
               </div>
@@ -128,12 +130,20 @@ const AdminLogin = () => {
           </Form>
           
           <div className="mt-8 border-t pt-6">
-            <p className="text-sm text-gray-500 text-center">
-              Não tem uma conta de administrador?{' '}
-              <Link to="/admin-register" className="font-medium text-primary hover:underline">
-                Registrar Admin
-              </Link>
-            </p>
+            <div className="text-center space-y-3">
+              <p className="text-sm text-gray-500">
+                Não tem uma conta de administrador?{' '}
+                <Link to="/admin-register" className="font-medium text-blue-600 hover:underline">
+                  Registrar Admin
+                </Link>
+              </p>
+              <p className="text-sm text-gray-500">
+                Área do cliente?{' '}
+                <Link to="/login" className="font-medium text-blue-600 hover:underline">
+                  Login Cliente
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

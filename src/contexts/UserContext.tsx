@@ -55,6 +55,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setCurrentUser(null);
         setIsAdmin(false);
+        setLoading(false);
       }
     });
 
@@ -167,7 +168,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      console.log('Attempting login for:', email);
+      console.log('Attempting customer login for:', email);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
@@ -175,7 +176,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      console.log('Login successful:', data.user?.id);
+      console.log('Customer login successful:', data.user?.id);
       // fetchUserProfile será chamado pelo listener de mudança de estado de autenticação
     } catch (error: any) {
       setLoading(false);
@@ -188,6 +189,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       console.log('Attempting admin login for:', email);
+      
       // Primeiro tenta fazer login
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {

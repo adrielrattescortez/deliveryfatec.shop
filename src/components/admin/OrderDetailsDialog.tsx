@@ -173,7 +173,6 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                   <p>{order.address.neighborhood || ''}</p>
                   <p>{order.address.city || ''}, {order.address.state || ''}</p>
                   <p>CEP: {order.address.zipCode || ''}</p>
-                  {order.address.complement && <p>Complemento: {order.address.complement}</p>}
                 </>
               ) : (
                 <p>Endereço não disponível</p>
