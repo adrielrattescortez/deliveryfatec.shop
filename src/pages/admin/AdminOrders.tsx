@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Eye, PackageOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { OrderDB, OrderStatus, OrderItem } from '@/types/product';
 import { format, parseISO } from 'date-fns';
+import OrderDetailsDialog from '@/components/admin/OrderDetailsDialog';
 
 const OrderStatusMap = {
   'pending': { label: 'Pendente', color: 'bg-yellow-500' },
@@ -132,13 +133,8 @@ const AdminOrders = () => {
   };
   
   const viewOrderDetails = (order: OrderDB) => {
-    const parsedOrder = {
-      ...order,
-      items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
-      address: typeof order.address === 'string' ? JSON.parse(order.address) : order.address
-    };
-    
-    setSelectedOrder(parsedOrder);
+    console.log('Viewing order details:', order);
+    setSelectedOrder(order);
     setIsDetailsOpen(true);
   };
   
@@ -270,137 +266,12 @@ const AdminOrders = () => {
         </div>
       </Card>
       
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          {selectedOrder && (
-            <div className="space-y-6 p-4">
-              <div className="flex justify-between items-center border-b pb-4">
-                <div>
-                  <h2 className="text-xl font-bold">Pedido #{selectedOrder.id.slice(0, 8)}</h2>
-                  <p className="text-sm text-gray-500">Realizado em {formatDate(selectedOrder.created_at)}</p>
-                </div>
-                <Badge 
-                  variant="default" 
-                  className={`${OrderStatusMap[selectedOrder.status as OrderStatus]?.color || 'bg-gray-500'} hover:${OrderStatusMap[selectedOrder.status as OrderStatus]?.color || 'bg-gray-500'}`}
-                >
-                  {OrderStatusMap[selectedOrder.status as OrderStatus]?.label || 'Desconhecido'}
-                </Badge>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-2">Cliente</h3>
-                <div className="bg-gray-50 p-3 rounded-md">
-                  <p className="font-medium">{selectedOrder.profiles?.name || 'Nome não disponível'}</p>
-                  <p>{selectedOrder.profiles?.email || 'Email não disponível'}</p>
-                  <p>{selectedOrder.profiles?.phone || 'Telefone não disponível'}</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-2">Endereço de Entrega</h3>
-                <div className="bg-gray-50 p-3 rounded-md">
-                  {typeof selectedOrder.address === 'object' && selectedOrder.address !== null ? (
-                    <>
-                      <p>{selectedOrder.address.street}, {selectedOrder.address.number}</p>
-                      <p>{selectedOrder.address.neighborhood}</p>
-                      <p>{selectedOrder.address.city}, {selectedOrder.address.state}</p>
-                      <p>{selectedOrder.address.zipCode}</p>
-                    </>
-                  ) : (
-                    <p>Endereço não disponível</p>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-medium mb-2">Itens do Pedido</h3>
-                <div className="space-y-2">
-                  {Array.isArray(selectedOrder.items) && selectedOrder.items.map((item, index) => (
-                    <div key={index} className="bg-gray-50 p-3 rounded-md">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{item.quantity}x {item.name}</span>
-                        <span>R$ {item.totalPrice.toFixed(2)}</span>
-                      </div>
-                      {item.selectedOptions && Object.entries(item.selectedOptions).length > 0 && (
-                        <div className="mt-1 text-sm text-gray-600">
-                          {Object.entries(item.selectedOptions).map(([key, value]) => (
-                            <div key={key}>
-                              <span className="font-medium">{key}:</span>{' '}
-                              {Array.isArray(value) ? value.join(', ') : String(value)}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="border-t pt-4">
-                <div className="flex justify-between mb-2">
-                  <span>Subtotal</span>
-                  <span>R$ {(selectedOrder.total - selectedOrder.delivery_fee).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span>Taxa de Entrega</span>
-                  <span>R$ {selectedOrder.delivery_fee.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>R$ {selectedOrder.total.toFixed(2)}</span>
-                </div>
-              </div>
-              
-              <div className="border-t pt-4">
-                <h3 className="font-medium mb-3">Atualizar Status</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    size="sm"
-                    variant={selectedOrder.status === 'pending' ? 'default' : 'outline'}
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'pending')}
-                    disabled={selectedOrder.status === 'pending'}
-                  >
-                    Pendente
-                  </Button>
-                  <Button 
-                    size="sm"
-                    variant={selectedOrder.status === 'processing' ? 'default' : 'outline'}
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'processing')}
-                    disabled={selectedOrder.status === 'processing'}
-                  >
-                    Em Preparação
-                  </Button>
-                  <Button 
-                    size="sm"
-                    variant={selectedOrder.status === 'delivering' ? 'default' : 'outline'}
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'delivering')}
-                    disabled={selectedOrder.status === 'delivering'}
-                  >
-                    Em Entrega
-                  </Button>
-                  <Button 
-                    size="sm"
-                    variant={selectedOrder.status === 'delivered' ? 'default' : 'outline'}
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'delivered')}
-                    disabled={selectedOrder.status === 'delivered'}
-                  >
-                    Entregue
-                  </Button>
-                  <Button 
-                    size="sm"
-                    variant={selectedOrder.status === 'cancelled' ? 'default' : 'outline'}
-                    className="bg-red-100 text-red-700 hover:bg-red-200 hover:text-red-800"
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'cancelled')}
-                    disabled={selectedOrder.status === 'cancelled'}
-                  >
-                    Cancelado
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <OrderDetailsDialog 
+        order={selectedOrder}
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        onUpdateStatus={updateOrderStatus}
+      />
     </div>
   );
 };
