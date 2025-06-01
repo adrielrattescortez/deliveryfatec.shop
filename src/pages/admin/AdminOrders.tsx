@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -71,8 +70,9 @@ const AdminOrders = () => {
           ? JSON.parse(order.address) 
           : order.address;
         
+        // Fixed: Added proper null checking for profiles
         let profilesData = null;
-        if (order.profiles && typeof order.profiles === 'object' && !('error' in order.profiles)) {
+        if (order.profiles && typeof order.profiles === 'object' && !Array.isArray(order.profiles)) {
           profilesData = order.profiles;
         }
 
@@ -217,8 +217,10 @@ const AdminOrders = () => {
               <tbody>
                 {filteredOrders.map((order) => {
                   const itemsArray = Array.isArray(order.items) ? order.items : [];
-                  const customerName = order.profiles?.name || 
-                    (order.address && typeof order.address === 'object' && 'customer_name' in order.address 
+                  // Fixed: Added proper null checking for order.profiles
+                  const customerName = (order.profiles && typeof order.profiles === 'object' && 'name' in order.profiles) 
+                    ? order.profiles.name || 'Nome não disponível'
+                    : (order.address && typeof order.address === 'object' && 'customer_name' in order.address 
                       ? order.address.customer_name 
                       : 'Cliente não encontrado');
                   
