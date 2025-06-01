@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -45,7 +44,6 @@ const Checkout = () => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   
   useEffect(() => {
-    // Redirecionar se o carrinho estiver vazio
     if (cartItems.length === 0) {
       navigate('/cart');
     }
@@ -92,7 +90,6 @@ const Checkout = () => {
     try {
       setIsStripeLoading(true);
       
-      // Chamada à função Edge do Supabase para criar o PaymentIntent
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
           amount: total,
@@ -108,10 +105,8 @@ const Checkout = () => {
         throw new Error(error.message);
       }
       
-      // Salvar o Client Secret para uso posterior
       setClientSecret(data.clientSecret);
       
-      // Abrir a página de pagamento do Stripe em uma nova aba
       if (data.clientSecret) {
         const stripeUrl = `https://checkout.stripe.com/pay/${data.clientSecret}`;
         window.open(stripeUrl, '_blank');
@@ -133,18 +128,15 @@ const Checkout = () => {
     try {
       setIsLoading(true);
       
-      // Se o método de pagamento é Stripe, criar PaymentIntent
       let paymentIntentId = null;
       if (data.paymentMethod === 'stripe') {
         paymentIntentId = await createStripePaymentIntent();
-        // Se não conseguiu criar o PaymentIntent, interromper o processo
         if (!paymentIntentId) {
           setIsLoading(false);
           return;
         }
       }
       
-      // Save user address if logged in
       if (currentUser?.id) {
         const { error } = await supabase
           .from('profiles')
@@ -167,20 +159,8 @@ const Checkout = () => {
         }
       }
       
-      // Create order object
       const orderData = {
         user_id: currentUser?.id || null,
-        customer_name: data.name,
-        customer_email: data.email,
-        customer_phone: data.phone,
-        delivery_address: {
-          street: data.street,
-          number: data.number,
-          neighborhood: data.neighborhood,
-          city: data.city,
-          state: data.state,
-          zipCode: data.zipCode
-        },
         items: cartItems.map(item => ({
           product_id: item.productId,
           name: item.name,
@@ -189,17 +169,22 @@ const Checkout = () => {
           total_price: item.totalPrice,
           selected_options: item.selectedOptions
         })),
-        subtotal: subtotal,
-        delivery_fee: deliveryFee,
+        address: {
+          street: data.street,
+          number: data.number,
+          neighborhood: data.neighborhood,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode,
+          customer_name: data.name,
+          customer_email: data.email,
+          customer_phone: data.phone
+        },
         total: total,
-        payment_method: data.paymentMethod,
-        payment_change: data.paymentMethod === 'cash' ? data.change : null,
-        payment_intent_id: paymentIntentId,
-        notes: data.notes,
+        delivery_fee: deliveryFee,
         status: data.paymentMethod === 'stripe' ? 'awaiting_payment' : 'pending'
       };
       
-      // Salvar o pedido no Supabase
       const { error: orderError } = await supabase
         .from('orders')
         .insert([orderData]);
@@ -211,7 +196,6 @@ const Checkout = () => {
       toast.success('Pedido realizado com sucesso!');
       clearCart();
       
-      // Redirect to orders page if logged in, otherwise to home
       navigate(currentUser ? '/customer/orders' : '/');
       
     } catch (error) {
@@ -223,7 +207,7 @@ const Checkout = () => {
   };
   
   if (cartItems.length === 0) {
-    return null; // UseEffect will redirect
+    return null;
   }
   
   return (
@@ -394,16 +378,16 @@ const Checkout = () => {
                           className="space-y-3"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="stripe" id="stripe" />
-                            <FormLabel htmlFor="stripe" className="font-normal cursor-pointer">
-                              Cartão de crédito/débito online (Stripe)
+                            <RadioGroupItem value="pix" id="pix" />
+                            <FormLabel htmlFor="pix" className="font-normal cursor-pointer">
+                              PIX
                             </FormLabel>
                           </div>
                           
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="pix" id="pix" />
-                            <FormLabel htmlFor="pix" className="font-normal cursor-pointer">
-                              Pix
+                            <RadioGroupItem value="stripe" id="stripe" />
+                            <FormLabel htmlFor="stripe" className="font-normal cursor-pointer">
+                              Cartão de crédito/débito online (Stripe)
                             </FormLabel>
                           </div>
                           
@@ -417,7 +401,7 @@ const Checkout = () => {
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="cash" id="cash" />
                             <FormLabel htmlFor="cash" className="font-normal cursor-pointer">
-                              Dinheiro
+                              Dinheiro (na entrega)
                             </FormLabel>
                           </div>
                         </RadioGroup>
@@ -449,6 +433,14 @@ const Checkout = () => {
                   <div className="mt-4 p-3 bg-blue-50 rounded-md">
                     <p className="text-sm text-blue-700">
                       Ao finalizar o pedido, você será redirecionado para a página segura de pagamento do Stripe.
+                    </p>
+                  </div>
+                )}
+                
+                {paymentMethod === 'pix' && (
+                  <div className="mt-4 p-3 bg-green-50 rounded-md">
+                    <p className="text-sm text-green-700">
+                      Após confirmar o pedido, você receberá o código PIX para pagamento.
                     </p>
                   </div>
                 )}

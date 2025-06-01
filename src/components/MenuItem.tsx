@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
 import type { FoodItem } from '@/types/product';
 
 type MenuItemProps = {
@@ -14,16 +15,37 @@ type MenuItemProps = {
 const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [hasOptions, setHasOptions] = useState(false);
+  
+  useEffect(() => {
+    const checkProductOptions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('product_options')
+          .select('id')
+          .eq('product_id', item.id)
+          .limit(1);
+        
+        if (!error && data && data.length > 0) {
+          setHasOptions(true);
+        }
+      } catch (error) {
+        console.error('Error checking product options:', error);
+      }
+    };
+    
+    checkProductOptions();
+  }, [item.id]);
   
   const handleClick = () => {
     navigate(`/product/${item.id}`);
   };
   
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the parent onClick
+    e.stopPropagation();
     
-    // For products with options, redirect to product detail page instead of directly adding
-    if (item.hasOptions) {
+    // Se o produto tem opções, redirecionar para página de detalhes
+    if (hasOptions) {
       navigate(`/product/${item.id}`);
       return;
     }
@@ -67,7 +89,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
               </span>
             )}
             <p className="text-sm">
-              {item.price < 10 ? (
+              {hasOptions ? (
                 <span>a partir de R$ {item.price.toFixed(2)}</span>
               ) : (
                 <span>R$ {item.price.toFixed(2)}</span>
@@ -82,7 +104,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4" />
-            <span>{item.hasOptions ? "Ver opções" : "Adicionar"}</span>
+            <span>{hasOptions ? "Ver opções" : "Adicionar"}</span>
           </Button>
         </div>
       </div>

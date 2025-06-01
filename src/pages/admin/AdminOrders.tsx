@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,7 +17,8 @@ const OrderStatusMap = {
   'processing': { label: 'Em preparação', color: 'bg-amber-500' },
   'delivering': { label: 'Em entrega', color: 'bg-blue-500' },
   'delivered': { label: 'Entregue', color: 'bg-green-500' },
-  'cancelled': { label: 'Cancelado', color: 'bg-red-500' }
+  'cancelled': { label: 'Cancelado', color: 'bg-red-500' },
+  'awaiting_payment': { label: 'Aguardando pagamento', color: 'bg-orange-500' }
 };
 
 const AdminOrders = () => {
@@ -51,7 +53,7 @@ const AdminOrders = () => {
       }
       
       if (searchTerm) {
-        query = query.or(`id.ilike.%${searchTerm}%,profiles.name.ilike.%${searchTerm}%,profiles.email.ilike.%${searchTerm}%`);
+        query = query.or(`id.ilike.%${searchTerm}%`);
       }
       
       const { data, error } = await query;
@@ -161,7 +163,7 @@ const AdminOrders = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input 
-              placeholder="Buscar por ID ou cliente..." 
+              placeholder="Buscar por ID do pedido..." 
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -178,6 +180,7 @@ const AdminOrders = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
+                <SelectItem value="awaiting_payment">Aguardando pagamento</SelectItem>
                 <SelectItem value="pending">Pendente</SelectItem>
                 <SelectItem value="processing">Em preparação</SelectItem>
                 <SelectItem value="delivering">Em entrega</SelectItem>
@@ -214,6 +217,11 @@ const AdminOrders = () => {
               <tbody>
                 {filteredOrders.map((order) => {
                   const itemsArray = Array.isArray(order.items) ? order.items : [];
+                  const customerName = order.profiles?.name || 
+                    (order.address && typeof order.address === 'object' && 'customer_name' in order.address 
+                      ? order.address.customer_name 
+                      : 'Cliente não encontrado');
+                  
                   return (
                     <tr key={order.id} className="border-b last:border-0">
                       <td className="py-4">
@@ -223,7 +231,7 @@ const AdminOrders = () => {
                         </div>
                       </td>
                       <td className="py-4">
-                        {order.profiles?.name || 'Cliente não encontrado'}
+                        {customerName}
                       </td>
                       <td className="py-4">
                         <Badge 
@@ -234,7 +242,7 @@ const AdminOrders = () => {
                         </Badge>
                       </td>
                       <td className="py-4 text-gray-600 hidden md:table-cell">
-                        {formatDate(order.created_at)}
+                        {order.created_at ? format(parseISO(order.created_at), 'dd/MM/yyyy HH:mm') : 'Data inválida'}
                       </td>
                       <td className="py-4 font-medium">
                         R$ {order.total.toFixed(2)}
