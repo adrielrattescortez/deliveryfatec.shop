@@ -37,14 +37,7 @@ const AdminOrders = () => {
     try {
       let query = supabase
         .from('orders')
-        .select(`
-          *,
-          profiles (
-            name,
-            phone,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (statusFilter !== 'all') {
@@ -55,42 +48,52 @@ const AdminOrders = () => {
         query = query.or(`id.ilike.%${searchTerm}%`);
       }
       
-      const { data, error } = await query;
+      const { data: ordersData, error } = await query;
       
       if (error) {
         throw error;
       }
 
-      const processedOrders: OrderDB[] = (data || []).map(order => {
-        const parsedItems = typeof order.items === 'string' 
-          ? JSON.parse(order.items) 
-          : (Array.isArray(order.items) ? order.items : []);
-        
-        const parsedAddress = typeof order.address === 'string' 
-          ? JSON.parse(order.address) 
-          : order.address;
-        
-        // Fixed: Added proper null checking for profiles
-        let profilesData = null;
-        if (order.profiles && typeof order.profiles === 'object' && !Array.isArray(order.profiles)) {
-          profilesData = order.profiles;
-        }
+      // Fetch profiles data separately for each order
+      const ordersWithProfiles = await Promise.all(
+        (ordersData || []).map(async (order) => {
+          let profileData = null;
+          
+          // Fetch profile data separately
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, phone, email')
+            .eq('id', order.user_id)
+            .single();
+            
+          if (profile) {
+            profileData = profile;
+          }
 
-        return {
-          id: order.id,
-          user_id: order.user_id,
-          items: parsedItems,
-          status: order.status,
-          total: order.total,
-          delivery_fee: order.delivery_fee,
-          address: parsedAddress,
-          created_at: order.created_at || '',
-          updated_at: order.updated_at || '',
-          profiles: profilesData
-        } as OrderDB;
-      });
+          const parsedItems = typeof order.items === 'string' 
+            ? JSON.parse(order.items) 
+            : (Array.isArray(order.items) ? order.items : []);
+          
+          const parsedAddress = typeof order.address === 'string' 
+            ? JSON.parse(order.address) 
+            : order.address;
+
+          return {
+            id: order.id,
+            user_id: order.user_id,
+            items: parsedItems,
+            status: order.status,
+            total: order.total,
+            delivery_fee: order.delivery_fee,
+            address: parsedAddress,
+            created_at: order.created_at || '',
+            updated_at: order.updated_at || '',
+            profiles: profileData
+          } as OrderDB;
+        })
+      );
       
-      setOrders(processedOrders);
+      setOrders(ordersWithProfiles);
     } catch (error: any) {
       toast.error(`Erro ao buscar pedidos: ${error.message}`);
       console.error('Error fetching orders:', error);
@@ -217,10 +220,8 @@ const AdminOrders = () => {
               <tbody>
                 {filteredOrders.map((order) => {
                   const itemsArray = Array.isArray(order.items) ? order.items : [];
-                  // Fixed: Added proper null checking for order.profiles
-                  const customerName = (order.profiles && typeof order.profiles === 'object' && 'name' in order.profiles) 
-                    ? order.profiles.name || 'Nome não disponível'
-                    : (order.address && typeof order.address === 'object' && 'customer_name' in order.address 
+                  const customerName = order.profiles?.name || 
+                    (order.address && typeof order.address === 'object' && 'customer_name' in order.address 
                       ? order.address.customer_name 
                       : 'Cliente não encontrado');
                   
