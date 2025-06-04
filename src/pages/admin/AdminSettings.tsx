@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -26,18 +27,11 @@ const AdminSettings = () => {
   const { storeInfo, updateStoreInfo } = useStore();
   const [logoPreview, setLogoPreview] = useState<string>(storeInfo.logo || "");
   const [bannerPreview, setBannerPreview] = useState<string>(storeInfo.banner || "");
-  const [logoChanged, setLogoChanged] = useState(false);
-  const [bannerChanged, setBannerChanged] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  useEffect(() => {
-    // Update previews when storeInfo changes
-    if (!logoChanged) {
-      setLogoPreview(storeInfo.logo || "");
-    }
-    if (!bannerChanged) {
-      setBannerPreview(storeInfo.banner || "");
-    }
-  }, [storeInfo, logoChanged, bannerChanged]);
+  console.log("Current store info:", storeInfo);
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -52,24 +46,30 @@ const AdminSettings = () => {
   
   // Reset the form when storeInfo changes
   useEffect(() => {
+    console.log("Resetting form with store info:", storeInfo);
     form.reset({
-      name: storeInfo.name,
+      name: storeInfo.name || "",
       description: storeInfo.description || '',
-      cuisineType: storeInfo.cuisineType,
-      deliveryFee: storeInfo.deliveryFee,
-      minOrder: storeInfo.minOrder,
+      cuisineType: storeInfo.cuisineType || "",
+      deliveryFee: storeInfo.deliveryFee || 0,
+      minOrder: storeInfo.minOrder || 0,
     });
+    setLogoPreview(storeInfo.logo || "");
+    setBannerPreview(storeInfo.banner || "");
   }, [storeInfo, form]);
   
   const handleLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    console.log("Logo file selected:", file.name);
+    setLogoFile(file);
+    
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
+      console.log("Logo preview generated");
       setLogoPreview(result);
-      setLogoChanged(true);
     };
     reader.readAsDataURL(file);
   };
@@ -78,37 +78,53 @@ const AdminSettings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    console.log("Banner file selected:", file.name);
+    setBannerFile(file);
+    
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
+      console.log("Banner preview generated");
       setBannerPreview(result);
-      setBannerChanged(true);
     };
     reader.readAsDataURL(file);
   };
   
-  const onSubmit = (data: FormData) => {
-    // Create a properly typed updatedInfo object that includes all StoreInfo properties
-    const updatedInfo: Partial<typeof storeInfo> = {
-      ...data,
-    };
-
-    // Only update logo and banner if they've changed
-    if (logoChanged) {
-      updatedInfo.logo = logoPreview;
+  const onSubmit = async (data: FormData) => {
+    try {
+      setIsSubmitting(true);
+      console.log("Submitting form data:", data);
+      console.log("Logo preview:", logoPreview);
+      console.log("Banner preview:", bannerPreview);
+      
+      // Prepare the updated store info
+      const updatedInfo = {
+        name: data.name,
+        description: data.description || "",
+        cuisineType: data.cuisineType,
+        deliveryFee: Number(data.deliveryFee),
+        minOrder: Number(data.minOrder),
+        logo: logoPreview,
+        banner: bannerPreview,
+      };
+      
+      console.log("Updating store info with:", updatedInfo);
+      
+      // Update the store info
+      updateStoreInfo(updatedInfo);
+      
+      // Reset file states
+      setLogoFile(null);
+      setBannerFile(null);
+      
+      toast.success('Configurações salvas com sucesso!');
+      console.log("Settings saved successfully");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error('Erro ao salvar configurações. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    if (bannerChanged) {
-      updatedInfo.banner = bannerPreview;
-    }
-    
-    updateStoreInfo(updatedInfo);
-    
-    // Reset change flags
-    setLogoChanged(false);
-    setBannerChanged(false);
-    
-    toast.success('Configurações salvas com sucesso!');
   };
   
   return (
@@ -148,7 +164,7 @@ const AdminSettings = () => {
                       <FormItem>
                         <FormLabel>Nome da loja</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Digite o nome da loja" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -162,7 +178,7 @@ const AdminSettings = () => {
                       <FormItem>
                         <FormLabel>Tipo de culinária</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Ex: Árabe, Italiana, Japonesa..." />
                         </FormControl>
                         <FormDescription>
                           Ex: Árabe, Italiana, Japonesa...
@@ -183,6 +199,7 @@ const AdminSettings = () => {
                             <Textarea 
                               {...field} 
                               className="min-h-[100px]"
+                              placeholder="Digite uma breve descrição da sua loja"
                             />
                           </FormControl>
                           <FormDescription>
@@ -205,7 +222,7 @@ const AdminSettings = () => {
                   <div>
                     <FormLabel>Logo da loja</FormLabel>
                     <div className="mt-4">
-                      <div className="h-40 w-40 rounded-lg bg-gray-100 overflow-hidden mb-4 mx-auto">
+                      <div className="h-40 w-40 rounded-lg bg-gray-100 overflow-hidden mb-4 mx-auto border-2 border-dashed border-gray-300">
                         {logoPreview ? (
                           <img 
                             src={logoPreview} 
@@ -225,10 +242,10 @@ const AdminSettings = () => {
                       <div className="flex items-center justify-center">
                         <label 
                           htmlFor="logo-upload"
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 transition-colors"
                         >
                           <Upload size={18} />
-                          <span>Alterar logo</span>
+                          <span>{logoPreview ? 'Alterar logo' : 'Adicionar logo'}</span>
                           <Input 
                             id="logo-upload"
                             type="file" 
@@ -247,7 +264,7 @@ const AdminSettings = () => {
                   <div>
                     <FormLabel>Banner da loja</FormLabel>
                     <div className="mt-4">
-                      <div className="h-40 w-full rounded-lg bg-gray-100 overflow-hidden mb-4">
+                      <div className="h-40 w-full rounded-lg bg-gray-100 overflow-hidden mb-4 border-2 border-dashed border-gray-300">
                         {bannerPreview ? (
                           <img 
                             src={bannerPreview} 
@@ -267,10 +284,10 @@ const AdminSettings = () => {
                       <div className="flex items-center justify-center">
                         <label 
                           htmlFor="banner-upload"
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer hover:bg-blue-600 transition-colors"
                         >
                           <Upload size={18} />
-                          <span>Alterar banner</span>
+                          <span>{bannerPreview ? 'Alterar banner' : 'Adicionar banner'}</span>
                           <Input 
                             id="banner-upload"
                             type="file" 
@@ -301,7 +318,13 @@ const AdminSettings = () => {
                       <FormItem>
                         <FormLabel>Taxa de entrega (R$)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} />
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            min="0"
+                            placeholder="0,00"
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -315,7 +338,13 @@ const AdminSettings = () => {
                       <FormItem>
                         <FormLabel>Pedido mínimo (R$)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} />
+                          <Input 
+                            type="number" 
+                            step="0.01" 
+                            min="0"
+                            placeholder="0,00"
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -326,8 +355,13 @@ const AdminSettings = () => {
             </TabsContent>
             
             <div className="flex justify-end">
-              <Button type="submit" size="lg">
-                Salvar todas as configurações
+              <Button 
+                type="submit" 
+                size="lg" 
+                disabled={isSubmitting}
+                className="min-w-[200px]"
+              >
+                {isSubmitting ? 'Salvando...' : 'Salvar todas as configurações'}
               </Button>
             </div>
           </form>

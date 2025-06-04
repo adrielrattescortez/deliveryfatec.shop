@@ -24,7 +24,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [storeInfo, setStoreInfo] = useState<StoreInfo>(() => {
     try {
       const savedInfo = localStorage.getItem('storeInfo');
-      return savedInfo ? JSON.parse(savedInfo) : defaultStoreInfo;
+      if (savedInfo) {
+        const parsedInfo = JSON.parse(savedInfo);
+        console.log("Loaded store info from localStorage:", parsedInfo);
+        return parsedInfo;
+      }
+      console.log("Using default store info");
+      return defaultStoreInfo;
     } catch (error) {
       console.error("Erro ao carregar informações da loja do localStorage:", error);
       return defaultStoreInfo;
@@ -34,6 +40,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Salvar informações da loja no localStorage sempre que ela mudar
   useEffect(() => {
     try {
+      console.log("Saving store info to localStorage:", storeInfo);
       localStorage.setItem('storeInfo', JSON.stringify(storeInfo));
     } catch (error) {
       console.error("Erro ao salvar informações da loja no localStorage:", error);
@@ -41,13 +48,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [storeInfo]);
 
   const updateStoreInfo = (info: Partial<StoreInfo>) => {
+    console.log("Updating store info with:", info);
     setStoreInfo(prevInfo => {
       const updatedInfo = { ...prevInfo, ...info };
+      console.log("New store info:", updatedInfo);
+      
       try {
         localStorage.setItem('storeInfo', JSON.stringify(updatedInfo));
+        console.log("Store info saved to localStorage successfully");
       } catch (error) {
         console.error("Erro ao salvar informações atualizadas da loja:", error);
       }
+      
       return updatedInfo;
     });
   };
@@ -56,7 +68,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const savedInfo = localStorage.getItem('storeInfo');
       if (savedInfo) {
-        setStoreInfo(JSON.parse(savedInfo));
+        const parsedInfo = JSON.parse(savedInfo);
+        console.log("Refreshing store info from localStorage:", parsedInfo);
+        setStoreInfo(parsedInfo);
       }
     } catch (error) {
       console.error("Erro ao atualizar informações da loja do localStorage:", error);
