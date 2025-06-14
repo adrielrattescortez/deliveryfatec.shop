@@ -184,26 +184,26 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <div className="space-y-2">
               {Array.isArray(order.items) && order.items.length > 0 ? (
                 order.items.map((item, index) => {
-                  // Compatibilidade para snake_case e camelCase
+                  // Garantia de compatibilidade e fallback
                   const total =
-                    typeof item.totalPrice !== "undefined"
+                    typeof item.totalPrice === "number"
                       ? item.totalPrice
-                      : (typeof item.total_price !== "undefined"
-                        ? item.total_price
-                        : 0);
+                      : 0;
 
-                  // O mesmo para quantity, name, selectedOptions/selected_options
                   const quantity =
-                    typeof item.quantity !== "undefined"
+                    typeof item.quantity === "number"
                       ? item.quantity
-                      : (typeof item.quantity === "undefined" && typeof item.qtd !== "undefined" ? item.qtd : 1);
-                  const name = item.name || item.product_name || 'Item';
+                      : 1;
 
-                  // Opções customizadas
+                  const name =
+                    typeof item.name === "string"
+                      ? item.name
+                      : "Item";
+
                   const selectedOptions =
-                    item.selectedOptions ||
-                    item.selected_options ||
-                    {};
+                    (item.selectedOptions && typeof item.selectedOptions === "object")
+                      ? item.selectedOptions
+                      : {};
 
                   return (
                     <div key={index} className="bg-gray-50 p-3 rounded-md">
@@ -215,19 +215,18 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                           R$ {Number(total).toFixed(2)}
                         </span>
                       </div>
-                      {selectedOptions &&
-                        Object.entries(selectedOptions).length > 0 && (
-                          <div className="mt-1 text-sm text-gray-600">
-                            {Object.entries(selectedOptions).map(([key, value]) => (
-                              <div key={key}>
-                                <span className="font-medium">{key}:</span>{" "}
-                                {Array.isArray(value)
-                                  ? value.join(", ")
-                                  : String(value)}
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                      {selectedOptions && Object.entries(selectedOptions).length > 0 && (
+                        <div className="mt-1 text-sm text-gray-600">
+                          {Object.entries(selectedOptions).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-medium">{key}:</span>{" "}
+                              {Array.isArray(value)
+                                ? value.join(", ")
+                                : String(value)}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })
