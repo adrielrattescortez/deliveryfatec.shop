@@ -31,7 +31,7 @@ const FeaturedItems: React.FC<FeaturedItemsProps> = ({ title, items }) => {
               className="featured-image w-24 h-24 md:w-36 md:h-36"
               loading="lazy"
             />
-            <MenuItem item={item} featured />
+            <MenuItem item={item} featured hideImage />
           </div>
         ))}
       </div>
@@ -40,3 +40,4 @@ const FeaturedItems: React.FC<FeaturedItemsProps> = ({ title, items }) => {
 };
 
 export default FeaturedItems;
+

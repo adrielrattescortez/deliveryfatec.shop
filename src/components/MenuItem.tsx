@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
@@ -10,9 +9,10 @@ import type { FoodItem } from '@/types/product';
 type MenuItemProps = {
   item: FoodItem;
   featured?: boolean;
+  hideImage?: boolean;
 };
 
-const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
+const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage = false }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [hasOptions, setHasOptions] = useState(false);
@@ -108,14 +108,16 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false }) => {
           </Button>
         </div>
       </div>
-      
-      <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0">
-        <img 
-          src={item.image} 
-          alt={item.name}
-          className="w-full h-full object-cover"
-        />
-      </div>
+      {/* Só mostra a imagem se não estiver oculto */}
+      {!hideImage && (
+        <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0">
+          <img 
+            src={item.image} 
+            alt={item.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
     </div>
   );
 };
