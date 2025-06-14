@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Printer } from 'lucide-react';
+import { Printer, Truck } from 'lucide-react';
 import { OrderDB, OrderStatus } from '@/types/product';
 import { format, parseISO } from 'date-fns';
 
@@ -38,6 +39,23 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
     }
   };
 
+  const handlePrintAndUpdateStatus = () => {
+    if (!order) return;
+    
+    // Primeiro imprime o pedido
+    handlePrint();
+    
+    // Se o pedido estiver pendente ou aguardando pagamento, move para "em preparação"
+    if (order.status === 'pending' || order.status === 'awaiting_payment') {
+      onUpdateStatus(order.id, 'processing');
+    }
+  };
+
+  const handleConfirmDelivery = () => {
+    if (!order) return;
+    onUpdateStatus(order.id, 'delivering');
+  };
+
   const handlePrint = () => {
     if (!order) return;
     
@@ -50,62 +68,138 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
         <head>
           <title>Pedido #${order.id.slice(0, 8)}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .section { margin-bottom: 15px; }
-            .section h3 { margin-bottom: 5px; color: #333; }
-            .item { padding: 8px; border-bottom: 1px solid #eee; }
-            .total { font-weight: bold; font-size: 18px; }
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 20px; 
+              line-height: 1.4;
+              font-size: 14px;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 20px; 
+              border-bottom: 2px solid #333;
+              padding-bottom: 15px;
+            }
+            .header h1 {
+              margin: 0 0 10px 0;
+              font-size: 24px;
+            }
+            .section { 
+              margin-bottom: 20px; 
+              page-break-inside: avoid;
+            }
+            .section h3 { 
+              margin: 0 0 8px 0; 
+              color: #333; 
+              font-size: 16px;
+              border-bottom: 1px solid #ddd;
+              padding-bottom: 4px;
+            }
+            .item { 
+              padding: 8px 0; 
+              border-bottom: 1px solid #eee; 
+            }
+            .item:last-child {
+              border-bottom: none;
+            }
+            .item-header {
+              font-weight: bold;
+              font-size: 15px;
+              margin-bottom: 4px;
+            }
+            .item-options {
+              font-size: 12px;
+              color: #666;
+              margin-left: 10px;
+              font-style: italic;
+            }
+            .total-section { 
+              margin-top: 20px;
+              border-top: 2px solid #333;
+              padding-top: 10px;
+            }
+            .total { 
+              font-weight: bold; 
+              font-size: 18px; 
+            }
             .status { 
-              padding: 4px 8px; 
+              padding: 6px 12px; 
               border-radius: 4px; 
               background-color: #f0f0f0;
               display: inline-block;
+              font-weight: bold;
+            }
+            .customer-info {
+              background-color: #f9f9f9;
+              padding: 10px;
+              border-radius: 4px;
+            }
+            .address-info {
+              background-color: #f9f9f9;
+              padding: 10px;
+              border-radius: 4px;
+            }
+            @media print {
+              body { margin: 0; }
+              .header { page-break-after: avoid; }
             }
           </style>
         </head>
         <body>
           <div class="header">
-            <h1>Pedido #${order.id.slice(0, 8)}</h1>
-            <p>Data: ${formatDate(order.created_at)}</p>
+            <h1>PEDIDO #${order.id.slice(0, 8)}</h1>
+            <p><strong>Data:</strong> ${formatDate(order.created_at)}</p>
             <span class="status">Status: ${OrderStatusMap[order.status as OrderStatus]?.label || 'Desconhecido'}</span>
           </div>
           
           <div class="section">
-            <h3>Cliente</h3>
-            <p><strong>Nome:</strong> ${order.profiles?.name || 'Nome não disponível'}</p>
-            <p><strong>Email:</strong> ${order.profiles?.email || 'Email não disponível'}</p>
-            <p><strong>Telefone:</strong> ${order.profiles?.phone || 'Telefone não disponível'}</p>
+            <h3>📞 Informações do Cliente</h3>
+            <div class="customer-info">
+              <p><strong>Nome:</strong> ${order.profiles?.name || 'Nome não disponível'}</p>
+              <p><strong>Telefone:</strong> ${order.profiles?.phone || 'Telefone não disponível'}</p>
+              <p><strong>Email:</strong> ${order.profiles?.email || 'Email não disponível'}</p>
+            </div>
           </div>
           
           <div class="section">
-            <h3>Endereço de Entrega</h3>
-            ${order.address && typeof order.address === 'object' ? `
-              <p>${order.address.street || ''}, ${order.address.number || ''}</p>
-              <p>${order.address.neighborhood || ''}</p>
-              <p>${order.address.city || ''}, ${order.address.state || ''}</p>
-              <p>CEP: ${order.address.zipCode || ''}</p>
-            ` : '<p>Endereço não disponível</p>'}
+            <h3>🏠 Endereço de Entrega</h3>
+            <div class="address-info">
+              ${order.address && typeof order.address === 'object' ? `
+                <p><strong>Rua:</strong> ${order.address.street || ''}, ${order.address.number || ''}</p>
+                <p><strong>Bairro:</strong> ${order.address.neighborhood || ''}</p>
+                <p><strong>Cidade:</strong> ${order.address.city || ''}, ${order.address.state || ''}</p>
+                <p><strong>CEP:</strong> ${order.address.zipCode || ''}</p>
+              ` : '<p>Endereço não disponível</p>'}
+            </div>
           </div>
           
           <div class="section">
-            <h3>Itens do Pedido</h3>
-            ${Array.isArray(order.items) ? order.items.map(item => `
-              <div class="item">
-                <strong>${item.quantity}x ${item.name}</strong> - R$ ${item.totalPrice.toFixed(2)}
-                ${item.selectedOptions && Object.entries(item.selectedOptions).length > 0 ? `
-                  <br><small>${Object.entries(item.selectedOptions).map(([key, value]) => 
-                    `${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`
-                  ).join(', ')}</small>
-                ` : ''}
-              </div>
-            `).join('') : '<p>Nenhum item encontrado</p>'}
+            <h3>🍽️ Itens do Pedido</h3>
+            ${Array.isArray(order.items) ? order.items.map(item => {
+              const quantity = typeof item.quantity === "number" ? item.quantity : 1;
+              const name = typeof item.name === "string" ? item.name : "Item";
+              const totalPrice = typeof item.totalPrice === "number" ? item.totalPrice : 0;
+              const selectedOptions = (item.selectedOptions && typeof item.selectedOptions === "object") ? item.selectedOptions : {};
+              
+              return `
+                <div class="item">
+                  <div class="item-header">${quantity}x ${name} - R$ ${Number(totalPrice).toFixed(2)}</div>
+                  ${Object.entries(selectedOptions).length > 0 ? `
+                    <div class="item-options">
+                      ${Object.entries(selectedOptions).map(([key, value]) => 
+                        `• ${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}`
+                      ).join('<br>')}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('') : '<p>Nenhum item encontrado</p>'}
           </div>
           
-          <div class="section">
-            <p>Subtotal: R$ ${(order.total - order.delivery_fee).toFixed(2)}</p>
-            <p>Taxa de Entrega: R$ ${order.delivery_fee.toFixed(2)}</p>
-            <p class="total">Total: R$ ${order.total.toFixed(2)}</p>
+          <div class="total-section">
+            <p><strong>Subtotal:</strong> R$ ${(order.total - order.delivery_fee).toFixed(2)}</p>
+            <p><strong>Taxa de Entrega:</strong> R$ ${order.delivery_fee.toFixed(2)}</p>
+            <p class="total">TOTAL: R$ ${order.total.toFixed(2)}</p>
           </div>
         </body>
       </html>
@@ -126,15 +220,33 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
         <DialogHeader>
           <div className="flex justify-between items-center">
             <DialogTitle>Pedido #{order.id.slice(0, 8)}</DialogTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrint}
-              className="gap-2"
-            >
-              <Printer className="h-4 w-4" />
-              Imprimir
-            </Button>
+            <div className="flex gap-2">
+              {/* Botão de confirmação de saída para entrega - só aparece se estiver "em preparação" */}
+              {order.status === 'processing' && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleConfirmDelivery}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Truck className="h-4 w-4" />
+                  Confirmar Saída para Entrega
+                </Button>
+              )}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrintAndUpdateStatus}
+                className="gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                Imprimir
+                {(order.status === 'pending' || order.status === 'awaiting_payment') && (
+                  <span className="text-xs text-gray-500">(e colocar em preparação)</span>
+                )}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
         
