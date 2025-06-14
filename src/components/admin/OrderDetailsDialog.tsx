@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -184,24 +183,54 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <h3 className="font-medium mb-2">Itens do Pedido</h3>
             <div className="space-y-2">
               {Array.isArray(order.items) && order.items.length > 0 ? (
-                order.items.map((item, index) => (
-                  <div key={index} className="bg-gray-50 p-3 rounded-md">
-                    <div className="flex justify-between">
-                      <span className="font-medium">{item.quantity}x {item.name}</span>
-                      <span>R$ {item.totalPrice.toFixed(2)}</span>
-                    </div>
-                    {item.selectedOptions && Object.entries(item.selectedOptions).length > 0 && (
-                      <div className="mt-1 text-sm text-gray-600">
-                        {Object.entries(item.selectedOptions).map(([key, value]) => (
-                          <div key={key}>
-                            <span className="font-medium">{key}:</span>{' '}
-                            {Array.isArray(value) ? value.join(', ') : String(value)}
-                          </div>
-                        ))}
+                order.items.map((item, index) => {
+                  // Compatibilidade para snake_case e camelCase
+                  const total =
+                    typeof item.totalPrice !== "undefined"
+                      ? item.totalPrice
+                      : (typeof item.total_price !== "undefined"
+                        ? item.total_price
+                        : 0);
+
+                  // O mesmo para quantity, name, selectedOptions/selected_options
+                  const quantity =
+                    typeof item.quantity !== "undefined"
+                      ? item.quantity
+                      : (typeof item.quantity === "undefined" && typeof item.qtd !== "undefined" ? item.qtd : 1);
+                  const name = item.name || item.product_name || 'Item';
+
+                  // Opções customizadas
+                  const selectedOptions =
+                    item.selectedOptions ||
+                    item.selected_options ||
+                    {};
+
+                  return (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md">
+                      <div className="flex justify-between">
+                        <span className="font-medium">
+                          {quantity}x {name}
+                        </span>
+                        <span>
+                          R$ {Number(total).toFixed(2)}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))
+                      {selectedOptions &&
+                        Object.entries(selectedOptions).length > 0 && (
+                          <div className="mt-1 text-sm text-gray-600">
+                            {Object.entries(selectedOptions).map(([key, value]) => (
+                              <div key={key}>
+                                <span className="font-medium">{key}:</span>{" "}
+                                {Array.isArray(value)
+                                  ? value.join(", ")
+                                  : String(value)}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                  );
+                })
               ) : (
                 <p className="text-gray-500">Nenhum item encontrado</p>
               )}
