@@ -10,7 +10,7 @@ export type FoodItem = {
   image: string;
   popular?: boolean;
   vegetarian?: boolean;
-  category?: string; // Added category field
+  category?: string;
 };
 
 type FeaturedItemsProps = {
@@ -20,15 +20,22 @@ type FeaturedItemsProps = {
 
 const FeaturedItems: React.FC<FeaturedItemsProps> = ({ title, items }) => {
   return (
-    <div className="px-4 py-6">
-      <h2 className="text-xl font-bold mb-4">{title}</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <section>
+      <h2 className="text-2xl md:text-3xl font-bold mb-5">{title}</h2>
+      <div className="featured-grid">
         {items.map(item => (
-          <MenuItem key={item.id} item={item} featured />
+          <div className="rounded-2xl shadow-md bg-white p-4 flex gap-4 items-center md:items-stretch" key={item.id}>
+            <img 
+              src={item.image} 
+              alt={item.name}
+              className="featured-image w-24 h-24 md:w-36 md:h-36"
+              loading="lazy"
+            />
+            <MenuItem item={item} featured />
+          </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

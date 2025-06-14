@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Minus, Plus, ShoppingCart } from 'lucide-react';
@@ -215,7 +214,7 @@ const ProductDetail = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-24">
       <Header 
         restaurantName={storeInfo.name}
         showSearch={false}
@@ -230,25 +229,23 @@ const ProductDetail = () => {
           <ChevronLeft className="h-6 w-6" />
         </button>
         
-        <div className="h-64 bg-gray-300 relative">
+        <div className="h-72 md:h-96 bg-gray-300 relative">
           <img 
             src={product.image} 
             alt={product.name} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-b-xl shadow-lg"
           />
         </div>
       </div>
       
-      <div className="bg-white p-4">
-        <h1 className="text-2xl font-bold">{product.name}</h1>
-        
+      <div className="bg-white p-6 md:p-10 rounded-b-3xl -mt-10 relative z-10 shadow">
+        <h1 className="text-2xl md:text-3xl font-bold">{product.name}</h1>
         {product.description && (
-          <p className="text-gray-700 mt-2 text-sm">
+          <p className="text-gray-700 mt-3 text-base md:text-lg">
             {product.description}
           </p>
         )}
-        
-        <p className="mt-2 font-medium text-lg">
+        <p className="mt-2 font-semibold text-xl">
           A partir de R$ {product.price.toFixed(2)}
         </p>
       </div>
@@ -324,36 +321,34 @@ const ProductDetail = () => {
         </>
       )}
       
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex items-center gap-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex flex-col md:flex-row items-center gap-4 z-20 shadow-2xl">
         <div className="flex items-center border rounded-md">
           <button 
             onClick={handleDecreaseQuantity} 
-            className="px-4 py-2 text-gray-500"
+            className="px-5 py-3 text-gray-500 text-lg"
             disabled={quantity <= 1}
           >
             <Minus className="h-5 w-5" />
           </button>
-          
-          <div className="px-4 py-2 border-x">
+          <div className="px-5 py-3 border-x text-lg font-bold">
             {quantity}
           </div>
-          
           <button 
             onClick={handleIncreaseQuantity} 
-            className="px-4 py-2 text-gray-500"
+            className="px-5 py-3 text-gray-500 text-lg"
           >
             <Plus className="h-5 w-5" />
           </button>
         </div>
         
         <Button 
-          className="flex-1 text-base py-6 gap-2" 
+          className="flex-1 big-btn text-base py-4 gap-2"
           disabled={isButtonDisabled}
           onClick={handleAddToCart}
         >
           <ShoppingCart className="h-5 w-5" />
           Adicionar
-          <span className="ml-1">
+          <span className="ml-1 font-bold">
             R$ {calculateTotalPrice().toFixed(2)}
           </span>
         </Button>

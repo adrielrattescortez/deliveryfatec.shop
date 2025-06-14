@@ -92,7 +92,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground font-inter text-base leading-relaxed; /* fonte base mais legível */
     font-family: 'Inter', sans-serif;
   }
 
@@ -102,5 +102,41 @@
 
   .menu-tab.active {
     @apply text-primary border-b-2 border-primary;
+  }
+
+  /* Ajuste global para imagens de destaque e produtos */
+  .menu-item-image, .featured-image, .hero-logo {
+    @apply max-w-full rounded-xl shadow-md object-cover transition-transform duration-200 hover:scale-105;
+  }
+
+  .featured-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8;
+  }
+
+  /* Melhor espaçamento global em seções */
+  section, .section-container {
+    @apply px-4 md:px-8 py-6 md:py-10;
+  }
+
+  /* Ajuste para containers dos formulários */
+  .form-container {
+    @apply bg-white p-8 md:p-10 shadow-lg rounded-lg w-full max-w-md mx-auto;
+  }
+
+  /* Botões maiores para toque */
+  .big-btn {
+    @apply h-12 text-lg rounded-lg;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 1rem;
+  }
+  .form-container {
+    @apply p-5;
+  }
+  .big-btn {
+    @apply h-11 text-base;
   }
 }

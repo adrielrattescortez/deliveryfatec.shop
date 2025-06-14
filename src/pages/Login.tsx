@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -56,14 +55,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="bg-white p-8 shadow-lg rounded-lg w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-2">
+      <div className="form-container">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Bem-vindo de volta!</h1>
+          <h1 className="text-3xl font-extrabold text-gray-800">Bem-vindo de volta!</h1>
           <p className="text-gray-600 mt-2">Acesse sua conta para continuar.</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* E-MAIL */}
             <FormField
               control={form.control}
               name="email"
@@ -71,12 +71,13 @@ const Login = () => {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="seu@email.com" {...field} />
+                    <Input type="email" placeholder="seu@email.com" {...field} className="h-12 md:h-14 text-base" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {/* SENHA */}
             <FormField
               control={form.control}
               name="password"
@@ -89,22 +90,23 @@ const Login = () => {
                         type={showPassword ? "text" : "password"}
                         placeholder="Sua senha"
                         {...field}
+                        className="h-12 md:h-14 text-base pr-12"
                       />
-                       <button 
-                          type="button" 
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                          aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
-                        >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
                     </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={loading || isSubmitting} size="lg">
+            <Button type="submit" className="w-full big-btn mt-2" disabled={loading || isSubmitting} size="lg">
               {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
@@ -116,7 +118,7 @@ const Login = () => {
               Cadastre-se
             </Link>
           </p>
-           <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-gray-600 mt-2">
             É um administrador?{' '}
             <Link to="/admin-login" className="font-medium text-primary hover:underline">
               Login Admin
