@@ -138,7 +138,7 @@ const Index = () => {
         logo={storeInfo.logo}
       />
       
-      <div className="bg-white">
+      <div className="bg-white pt-12 md:pt-16">
         <RestaurantInfo
           name={storeInfo.name}
           cuisine={storeInfo.cuisineType}
