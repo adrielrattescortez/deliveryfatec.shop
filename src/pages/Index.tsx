@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import RestaurantHero from '@/components/RestaurantHero';
@@ -50,25 +49,44 @@ const Index = () => {
   const [categoryItems, setCategoryItems] = useState<{[key: string]: FoodItem[]}>({});
   const [activeTab, setActiveTab] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   // Buscar produtos e categorias do Supabase
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        
-        // Buscar categorias
+        setLoadError(null);
+
+        console.log("[Index] Buscando categorias do Supabase...");
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
           .select('*')
           .order('name', { ascending: true });
-        
+
         if (categoriesError) {
-          console.error("Erro ao buscar categorias:", categoriesError);
-          throw categoriesError;
+          console.error("[Index] Erro ao buscar categorias:", categoriesError);
+          setLoadError("Erro ao carregar categorias: " + categoriesError.message);
+          setCategories([]);
+          setCategoryItems({});
+          setFoodItems([]);
+          return;
         }
-        
+
+        if (!categoriesData || categoriesData.length === 0) {
+          console.warn("[Index] Nenhuma categoria cadastrada.");
+          setCategories([]);
+          setCategoryItems({});
+          setLoadError("Nenhuma categoria cadastrada no sistema.");
+          setFoodItems([]);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("[Index] Categorias encontradas:", categoriesData);
+
         // Buscar produtos com nomes de categorias
+        console.log("[Index] Buscando produtos do Supabase...");
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select(`
@@ -76,12 +94,24 @@ const Index = () => {
             categories (name)
           `)
           .order('name', { ascending: true });
-        
+
         if (productsError) {
-          console.error("Erro ao buscar produtos:", productsError);
-          throw productsError;
+          console.error("[Index] Erro ao buscar produtos:", productsError);
+          setLoadError("Erro ao carregar produtos: " + productsError.message);
+          setFoodItems([]);
+          return;
         }
-        
+
+        if (!productsData || productsData.length === 0) {
+          console.warn("[Index] Nenhum produto cadastrado.");
+          setFoodItems([]);
+          setLoadError("Nenhum produto cadastrado no sistema.");
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("[Index] Produtos encontrados:", productsData);
+
         // Mapear produtos para o formato FoodItem
         const formattedProducts = productsData.map(product => ({
           id: product.id,
@@ -93,51 +123,55 @@ const Index = () => {
           vegetarian: product.vegetarian || false,
           category: product.categories?.name || "Sem categoria"
         }));
-        
+
         // Filtrar produtos populares para destaques
         const popularProducts = formattedProducts.filter(item => item.popular);
         setFoodItems(popularProducts.length > 0 ? popularProducts : formattedProducts.slice(0, 3));
-        
+
         // Organizar produtos por categoria
         const categoryNames = categoriesData.map(cat => cat.name);
         const productsByCategory: {[key: string]: FoodItem[]} = {};
-        
+
         categoryNames.forEach(catName => {
           productsByCategory[catName] = formattedProducts.filter(
             product => product.category === catName
           );
         });
-        
+
         setCategories(categoryNames);
         setCategoryItems(productsByCategory);
-        
+
         // Definir a primeira categoria como ativa, se existir
         if (categoryNames.length > 0 && !activeTab) {
           setActiveTab(categoryNames[0]);
         }
+
       } catch (error: any) {
-        console.error("Erro ao buscar dados:", error);
-        toast.error("Não foi possível carregar os produtos. Por favor, tente novamente mais tarde.");
+        console.error("[Index] Erro inesperado ao buscar dados:", error);
+        setLoadError("Erro inesperado: " + (typeof error === "string" ? error : error.message));
+        setFoodItems([]);
+        setCategories([]);
+        setCategoryItems({});
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchProducts();
   }, []);
-  
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Header 
         restaurantName={storeInfo.name}
         showSearch={true}
       />
-      
+
       <RestaurantHero 
         coverImage={storeInfo.banner}
         logo={storeInfo.logo}
       />
-      
+
       <div className="bg-white pt-8">
         {/* Logo redondo posicionado acima do RestaurantInfo */}
         <div className="flex justify-center pb-6">
@@ -167,6 +201,10 @@ const Index = () => {
       <div className="bg-white">
         {isLoading ? (
           <div className="p-8 text-center">Carregando produtos...</div>
+        ) : loadError ? (
+          <div className="p-8 text-center text-red-600">
+            {loadError}
+          </div>
         ) : (
           <FeaturedItems title="Destaques" items={foodItems} />
         )}
@@ -177,6 +215,10 @@ const Index = () => {
       <div className="bg-white">
         {isLoading ? (
           <div className="p-8 text-center">Carregando categorias...</div>
+        ) : loadError ? (
+          <div className="p-8 text-center text-red-600">
+            {loadError}
+          </div>
         ) : categories.length > 0 ? (
           <>
             <MenuTabs 
@@ -188,9 +230,11 @@ const Index = () => {
             <div className="p-4">
               <h2 className="text-xl font-bold mb-4">{activeTab}</h2>
               <div className="space-y-4">
-                {categoryItems[activeTab]?.map(item => (
-                  <MenuItem key={item.id} item={item} />
-                )) || (
+                {categoryItems[activeTab]?.length > 0 ? (
+                  categoryItems[activeTab]?.map(item => (
+                    <MenuItem key={item.id} item={item} />
+                  ))
+                ) : (
                   <p className="text-gray-500 text-center py-4">Nenhum produto encontrado nesta categoria.</p>
                 )}
               </div>
