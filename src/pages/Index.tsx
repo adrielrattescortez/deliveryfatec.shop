@@ -53,6 +53,11 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Adicionar logs para depuração
+  useEffect(() => {
+    console.log("[Index] storeInfo atualizado:", storeInfo);
+  }, [storeInfo]);  
+
   // Buscar produtos e categorias do Supabase
   useEffect(() => {
     const fetchProducts = async () => {
@@ -198,10 +203,12 @@ const Index = () => {
         {/* Logo redondo posicionado acima do RestaurantInfo */}
         <div className="flex justify-center pb-6">
           <div className="w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 rounded-full shadow-xl flex items-center justify-center overflow-hidden">
+            {/* Garante que a logo usa storeInfo.logo mais atualizado */}
             <img 
               src={storeInfo.logo} 
               alt="Restaurant logo"
               className="w-full h-full object-cover"
+              onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }}
             />
           </div>
         </div>
