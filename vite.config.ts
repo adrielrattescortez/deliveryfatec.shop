@@ -1,8 +1,9 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-// Adicione o middleware para spa fallback para rotas desconhecidas (resolve erro ao atualizar em páginas dinâmicas)
+// Corrigido para usar apenas propriedades válidas no Vite e garantir SPA fallback automaticamente
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -11,8 +12,8 @@ export default defineConfig({
     },
   },
   server: {
-    // Necessário para evitar erro 404 ao atualizar rotas client-side
-    historyApiFallback: true,
+    host: "::",
+    port: 8080, // conforme instruções, garantir porta 8080
   },
   build: {
     rollupOptions: {
