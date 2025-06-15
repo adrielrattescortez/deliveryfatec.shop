@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import RestaurantHero from '@/components/RestaurantHero';
@@ -44,7 +45,7 @@ export const FOOD_ITEMS: FoodItem[] = [
 ];
 
 const Index = () => {
-  const { storeInfo } = useStore();
+  const { storeInfo, loading: storeLoading } = useStore();
   const { logout } = useUser();
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -187,6 +188,18 @@ const Index = () => {
     fetchProducts();
   }, []);
 
+  // --------------------------
+  // NOVO LOADING ENQUANTO STORE CARREGA
+  // --------------------------
+  if (storeLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <div className="text-blue-500 font-medium">Carregando loja...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Header 
@@ -282,3 +295,4 @@ const Index = () => {
 };
 
 export default Index;
+
