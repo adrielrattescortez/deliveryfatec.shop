@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
@@ -119,7 +118,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
       </div>
 
       {!hideImage && (
-        <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-gray-100">
+        <div className="w-32 h-32 rounded-2xl overflow-hidden shrink-0 border border-gray-100 transition-all duration-200">
           <img 
             src={item.image} 
             alt={item.name}
@@ -132,4 +131,3 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
 };
 
 export default MenuItem;
-

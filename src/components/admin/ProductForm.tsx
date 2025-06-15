@@ -1,4 +1,3 @@
-
 import React, { useState, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -84,7 +83,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <div>
             <FormLabel>Imagem do produto</FormLabel>
             <div className="mt-2">
-              <div className="h-40 w-full rounded-lg bg-gray-100 overflow-hidden mb-2 flex items-center justify-center">
+              <div className="h-48 w-full rounded-lg bg-gray-100 overflow-hidden mb-2 flex items-center justify-center">
                 {imagePreview ? (
                   <img 
                     src={imagePreview} 
@@ -112,7 +111,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 </label>
               </div>
               <FormDescription className="mt-1 text-center">
-                Recomendado: 500x500px, formato quadrado
+                <span className="font-medium text-sm text-gray-700">Tamanho ideal: 500x500px (quadrado)</span>
               </FormDescription>
             </div>
           </div>
