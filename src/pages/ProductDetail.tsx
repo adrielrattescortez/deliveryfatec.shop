@@ -214,13 +214,13 @@ const ProductDetail = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 pb-48">
       <Header 
         restaurantName={storeInfo.name}
         showSearch={false}
         rightContent={<CartIcon />}
       />
-      
+
       <div className="relative">
         <button 
           className="absolute top-4 left-4 z-10 bg-white rounded-full p-2 shadow-md"
@@ -254,7 +254,7 @@ const ProductDetail = () => {
         <>
           <div className="h-2 bg-gray-50" />
 
-          <div className="bg-white">
+          <div className="bg-white pb-8">
             {productOptions.map(option => (
               <Card 
                 key={option.id} 
@@ -351,6 +351,7 @@ const ProductDetail = () => {
               </Card>
             ))}
           </div>
+          <div className="h-24 md:h-32"></div>
         </>
       )}
       
