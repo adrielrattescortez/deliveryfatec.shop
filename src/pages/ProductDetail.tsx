@@ -273,7 +273,6 @@ const ProductDetail = () => {
                     Escolha {option.maxOptions ? `até ${option.maxOptions}` : '1'} opção
                   </p>
 
-                  {/* Estilo único para todos os botões de seleção */}
                   <div className="space-y-5">
                     {option.variations.map(variation => {
                       const checked = option.maxOptions && option.maxOptions > 1
@@ -301,10 +300,10 @@ const ProductDetail = () => {
                             px-6 py-5 text-lg font-semibold
                             ${
                               checked
-                                ? 'border-green-600 bg-green-50 ring-2 ring-green-400 text-green-700'
-                                : 'border-gray-200 bg-gray-50 hover:border-green-400 hover:bg-green-100 text-gray-900'
+                                ? 'border-red-600 bg-red-50 ring-2 ring-red-400 text-red-700'
+                                : 'border-gray-200 bg-gray-50 hover:border-red-400 hover:bg-red-100 text-gray-900'
                             }
-                            focus:outline-none focus:ring-2 focus:ring-green-400
+                            focus:outline-none focus:ring-2 focus:ring-red-400
                             active:scale-97
                           `}
                         >
@@ -320,7 +319,7 @@ const ProductDetail = () => {
                                 mr-2
                                 ${
                                   checked
-                                    ? 'border-green-600 bg-green-500'
+                                    ? 'border-red-600 bg-red-500'
                                     : 'border-gray-300 bg-white'
                                 }
                               `}
@@ -337,7 +336,7 @@ const ProductDetail = () => {
                             </span>
                             <span>{variation.name}</span>
                           </div>
-                          <span className={`${variation.price > 0 ? "text-green-700 font-bold" : "text-gray-500 font-medium"}`}>
+                          <span className={`${variation.price > 0 ? "text-red-700 font-bold" : "text-gray-500 font-medium"}`}>
                             {variation.price > 0
                               ? <>+ R$ {variation.price.toFixed(2)}</>
                               : <>Grátis</>
@@ -376,7 +375,7 @@ const ProductDetail = () => {
         </div>
         
         <Button 
-          className="flex-1 big-btn text-lg py-5 gap-3 rounded-xl font-bold bg-green-600 hover:bg-green-700 transition-all"
+          className="flex-1 big-btn text-lg py-5 gap-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 transition-all"
           disabled={isButtonDisabled}
           onClick={handleAddToCart}
         >
