@@ -84,21 +84,29 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
           </p>
         )}
         
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex flex-col">
-            {item.vegetarian && (
-              <span className="text-gray-600 mb-1">
-                ⚫
-              </span>
-            )}
-            <p className={`${hasOptions ? 'text-base font-semibold' : 'text-sm'}`}>
-              {hasOptions ? (
-                <span className="text-green-600">a partir de R$ {item.price.toFixed(2)}</span>
-              ) : (
-                <span>R$ {item.price.toFixed(2)}</span>
-              )}
+        {item.vegetarian && (
+          <div className="mt-2">
+            <span className="text-gray-600">
+              ⚫
+            </span>
+          </div>
+        )}
+        
+        {hasOptions && (
+          <div className="mt-2">
+            <p className="text-base font-semibold text-green-600">
+              a partir de R$ {item.price.toFixed(2)}
             </p>
           </div>
+        )}
+        
+        <div className="mt-3 flex items-center justify-between">
+          {!hasOptions && (
+            <p className="text-sm">
+              R$ {item.price.toFixed(2)}
+            </p>
+          )}
+          {hasOptions && <div></div>}
           
           <Button 
             size="sm" 
