@@ -354,7 +354,7 @@ const ProductDetail = () => {
         </>
       )}
       
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex flex-col md:flex-row items-center gap-4 z-20 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex flex-row items-center justify-between z-20 shadow-2xl">
         <div className="flex items-center border rounded-md">
           <button 
             onClick={handleDecreaseQuantity} 
@@ -375,7 +375,7 @@ const ProductDetail = () => {
         </div>
         
         <Button 
-          className="flex-1 big-btn text-lg py-5 gap-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 transition-all"
+          className="ml-3 flex-1 big-btn text-lg py-5 gap-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 transition-all"
           disabled={isButtonDisabled}
           onClick={handleAddToCart}
         >
