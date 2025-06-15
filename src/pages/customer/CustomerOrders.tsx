@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -64,18 +63,32 @@ const CustomerOrders = () => {
   };
   
   const viewOrderDetails = (order) => {
-    const parsedItems = typeof order.items === 'string' 
-      ? JSON.parse(order.items) 
+    // Corrigir: garantir compatibilidade com campos snake_case/camelCase nos itens
+    const parsedItems = typeof order.items === 'string'
+      ? JSON.parse(order.items)
       : order.items;
-    
-    const parsedAddress = typeof order.address === 'string' 
-      ? JSON.parse(order.address) 
+
+    const parsedAddress = typeof order.address === 'string'
+      ? JSON.parse(order.address)
       : order.address;
-    
+
+    // Calcular subtotal caso não venha do backend
+    let subtotal = 0;
+    if (Array.isArray(parsedItems)) {
+      subtotal = parsedItems.reduce(
+        (sum, i) =>
+          sum + (typeof i.total_price === 'number'
+            ? i.total_price
+            : (i.unit_price || 0) * (i.quantity || 1)),
+        0
+      );
+    }
+
     setSelectedOrder({
       ...order,
       items: parsedItems,
-      address: parsedAddress
+      address: parsedAddress,
+      subtotal,
     });
     setIsDetailsOpen(true);
   };

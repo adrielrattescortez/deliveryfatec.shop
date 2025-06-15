@@ -208,26 +208,27 @@ const Checkout = () => {
               neighborhood: data.neighborhood,
               city: data.city,
               state: data.state,
-              zipCode: data.zipCode
+              zipCode: data.zipCode,
             }
           })
           .eq('id', currentUser.id);
 
         if (error) {
           console.error("Error updating profile:", error);
-          // Não interrompe, só avisa nos logs
+          // Não interrompe caso falhe (apenas loga)
         }
       }
 
+      // Garantir que as chaves estejam no padrão certo para ambos "itens" e "endereços".
       const orderData = {
-        user_id: currentUser?.id, // OBRIGATÓRIO: precisa do usuário!
+        user_id: currentUser?.id,
         items: cartItems.map(item => ({
           product_id: item.productId,
           name: item.name,
           quantity: item.quantity,
           unit_price: item.price,
           total_price: item.totalPrice,
-          selected_options: item.selectedOptions
+          selected_options: item.selectedOptions,
         })),
         address: {
           street: data.street,
@@ -238,12 +239,12 @@ const Checkout = () => {
           zipCode: data.zipCode,
           customer_name: data.name,
           customer_email: data.email,
-          customer_phone: data.phone
+          customer_phone: data.phone,
         },
         total: total,
         delivery_fee: deliveryFee,
         status: data.paymentMethod === 'stripe' ? 'awaiting_payment' : 'pending',
-        ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}) // espaço já pronto para stripe
+        ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}),
       };
 
       const { error: orderError } = await supabase
@@ -251,7 +252,6 @@ const Checkout = () => {
         .insert([orderData]);
 
       if (orderError) {
-        // Mensagem de erro mais clara dependendo do motivo
         if (orderError.message.includes('violates row-level security')) {
           throw new Error("Erro de permissão ao salvar pedido. Certifique-se de estar logado!");
         }

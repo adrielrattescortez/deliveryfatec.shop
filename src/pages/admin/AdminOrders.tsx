@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -55,42 +54,46 @@ const AdminOrders = () => {
         throw error;
       }
 
-      // Fetch profiles data separately for each order
+      // Ajuste: itens pode ser string (json) ou array (jsonb)
       const ordersWithProfiles = await Promise.all(
         (ordersData || []).map(async (order) => {
           let profileData = null;
           
-          // Fetch profile data separately
+          // Fetch profile data separademente
           const { data: profile } = await supabase
             .from('profiles')
             .select('name, phone, email')
             .eq('id', order.user_id)
-            .single();
+            .maybeSingle();
             
           if (profile) {
             profileData = profile;
           }
 
-          const parsedItems = typeof order.items === 'string' 
-            ? JSON.parse(order.items) 
-            : (Array.isArray(order.items) ? order.items : []);
-          
-          const parsedAddress = typeof order.address === 'string' 
-            ? JSON.parse(order.address) 
-            : order.address;
+          let parsedItems = [];
+          try {
+            parsedItems = typeof order.items === 'string'
+              ? JSON.parse(order.items)
+              : Array.isArray(order.items) ? order.items : [];
+          } catch {
+            parsedItems = [];
+          }
+
+          let parsedAddress = {};
+          try {
+            parsedAddress = typeof order.address === 'string'
+              ? JSON.parse(order.address)
+              : order.address;
+          } catch {
+            parsedAddress = {};
+          }
 
           return {
-            id: order.id,
-            user_id: order.user_id,
+            ...order,
             items: parsedItems,
-            status: order.status,
-            total: order.total,
-            delivery_fee: order.delivery_fee,
             address: parsedAddress,
-            created_at: order.created_at || '',
-            updated_at: order.updated_at || '',
-            profiles: profileData
-          } as OrderDB;
+            profiles: profileData,
+          };
         })
       );
       
