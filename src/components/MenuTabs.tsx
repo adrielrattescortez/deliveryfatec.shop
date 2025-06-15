@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 type MenuTabsProps = {
@@ -15,7 +14,7 @@ const MenuTabs: React.FC<MenuTabsProps> = ({ tabs, activeTab, onTabChange }) => 
           {tabs.map((tab) => (
             <button
               key={tab}
-              className={`py-3 px-4 text-sm font-medium menu-tab ${
+              className={`py-4 px-5 text-base font-medium menu-tab ${
                 activeTab === tab ? 'active' : 'text-gray-600'
               }`}
               onClick={() => onTabChange(tab)}
