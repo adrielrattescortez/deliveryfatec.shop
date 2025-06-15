@@ -26,30 +26,30 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [storeInfo, setStoreInfo] = useState<StoreInfo>(defaultStoreInfo);
   const [loading, setLoading] = useState(true);
 
-  // Obtém storeInfo do Supabase ao iniciar
   useEffect(() => {
     refreshStoreInfo();
     // eslint-disable-next-line
   }, []);
 
-  // Função para buscar storeInfo no Supabase
   const refreshStoreInfo = async () => {
     setLoading(true);
     try {
+      // Buscar da tabela corretamente, usando snake_case
       const { data, error } = await supabase
         .from('store_info')
         .select('*')
-        .limit(1)
-        .single();
+        .eq('id', 1)
+        .maybeSingle(); // garante retorno nulo em vez de erro se não encontrar
+
       if (data) {
         setStoreInfo({
-          name: data.name,
-          description: data.description,
-          logo: data.logo,
-          banner: data.banner,
-          deliveryFee: Number(data.deliveryFee),
-          minOrder: Number(data.minOrder),
-          cuisineType: data.cuisineType
+          name: data.name || "",
+          description: data.description || "",
+          logo: data.logo || "",
+          banner: data.banner || "",
+          deliveryFee: Number(data.delivery_fee) || 0,
+          minOrder: Number(data.min_order) || 0,
+          cuisineType: data.cuisine_type || ""
         });
       } else if (error) {
         console.error("Erro ao buscar informações da loja:", error);
@@ -63,14 +63,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Atualizar no Supabase
   const updateStoreInfo = async (info: Partial<StoreInfo>) => {
     setLoading(true);
     try {
+      // Mapear os campos para snake_case antes de enviar para o Supabase
+      const mappedInfo: any = {};
+      if (info.name !== undefined) mappedInfo.name = info.name;
+      if (info.description !== undefined) mappedInfo.description = info.description;
+      if (info.logo !== undefined) mappedInfo.logo = info.logo;
+      if (info.banner !== undefined) mappedInfo.banner = info.banner;
+      if (info.deliveryFee !== undefined) mappedInfo.delivery_fee = info.deliveryFee;
+      if (info.minOrder !== undefined) mappedInfo.min_order = info.minOrder;
+      if (info.cuisineType !== undefined) mappedInfo.cuisine_type = info.cuisineType;
+
       const { error } = await supabase
         .from('store_info')
-        .update(info)
-        .eq('id', 1); // supondo apenas 1 registro na tabela
+        .update(mappedInfo)
+        .eq('id', 1);
       if (error) throw error;
       await refreshStoreInfo();
     } catch (err) {
@@ -81,8 +90,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <StoreContext.Provider value={{ 
-      storeInfo, 
+    <StoreContext.Provider value={{
+      storeInfo,
       updateStoreInfo,
       refreshStoreInfo,
       loading

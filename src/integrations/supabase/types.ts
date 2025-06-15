@@ -219,6 +219,45 @@ export type Database = {
         }
         Relationships: []
       }
+      store_info: {
+        Row: {
+          banner: string | null
+          created_at: string | null
+          cuisine_type: string | null
+          delivery_fee: number
+          description: string | null
+          id: number
+          logo: string | null
+          min_order: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          banner?: string | null
+          created_at?: string | null
+          cuisine_type?: string | null
+          delivery_fee?: number
+          description?: string | null
+          id?: number
+          logo?: string | null
+          min_order?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          banner?: string | null
+          created_at?: string | null
+          cuisine_type?: string | null
+          delivery_fee?: number
+          description?: string | null
+          id?: number
+          logo?: string | null
+          min_order?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
