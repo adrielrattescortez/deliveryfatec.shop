@@ -252,67 +252,122 @@ const ProductDetail = () => {
       
       {productOptions.length > 0 && (
         <>
-          <div className="h-2 bg-gray-50"></div>
+          <div className="h-2 bg-gray-50" />
           
           <div className="bg-white">
             {productOptions.map(option => (
-              <Card key={option.id} className="mb-4 border-0 shadow-none">
+              <Card 
+                key={option.id} 
+                className="mb-6 border-0 shadow-none px-0"
+              >
                 <div className="p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <h2 className="font-semibold">{option.title}</h2>
+                  <div className="flex justify-between items-center mb-3">
+                    <h2 className="font-semibold text-lg">{option.title}</h2>
                     {option.required && (
-                      <span className="bg-gray-900 text-white text-xs font-medium px-2 py-1 rounded">
+                      <span className="bg-gray-900 text-white text-xs font-semibold px-2 py-1 rounded">
                         OBRIGATÓRIO
                       </span>
                     )}
                   </div>
-                  
-                  <p className="text-sm text-gray-500 mb-4">
+                  <p className="text-base text-gray-500 mb-4">
                     Escolha {option.maxOptions ? `até ${option.maxOptions}` : '1'} opção
                   </p>
-                  
+                  {/* Opções múltiplas (Checkbox) */}
                   {option.maxOptions && option.maxOptions > 1 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {option.variations.map(variation => (
-                        <div key={variation.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Checkbox 
-                              id={variation.id} 
-                              checked={selectedOptions[option.id]?.includes(variation.id) || false}
-                              onCheckedChange={(checked) => 
-                                handleCheckboxChange(option.id, variation.id, checked === true)
-                              }
-                            />
-                            <label htmlFor={variation.id} className="text-sm font-medium">
-                              {variation.name}
-                            </label>
+                        <button
+                          key={variation.id}
+                          type="button"
+                          onClick={() => {
+                            const checked =
+                              selectedOptions[option.id]?.includes(variation.id) || false;
+                            handleCheckboxChange(
+                              option.id,
+                              variation.id,
+                              !checked
+                            );
+                          }}
+                          className={`flex items-center justify-between transition-all w-full py-4 px-4 rounded-xl border-2
+                            ${
+                              selectedOptions[option.id]?.includes(variation.id)
+                                ? 'border-green-600 bg-green-50'
+                                : 'border-gray-200 bg-gray-50 hover:border-green-400 hover:bg-green-100'
+                            }
+                            focus:outline-none focus:ring-2 focus:ring-green-400`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all
+                                ${
+                                  selectedOptions[option.id]?.includes(variation.id)
+                                    ? 'border-green-600 bg-green-500'
+                                    : 'border-gray-300 bg-white'
+                                }`}
+                            >
+                              {selectedOptions[option.id]?.includes(variation.id) && (
+                                <span className="block w-3 h-3 bg-white rounded-[2px]" />
+                              )}
+                            </span>
+                            <span className="text-base font-medium">{variation.name}</span>
                           </div>
-                          <span className="text-sm">
-                            {variation.price > 0 ? `+ R$ ${variation.price.toFixed(2)}` : 'Grátis'}
+                          <span className="text-base">
+                            {variation.price > 0 ? (
+                              <span className="text-green-700 font-semibold">
+                                + R$ {variation.price.toFixed(2)}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">Grátis</span>
+                            )}
                           </span>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   ) : (
-                    <RadioGroup 
-                      value={selectedOptions[option.id]?.[0] || ""}
-                      onValueChange={(value: string) => handleRadioChange(option.id, value)}
-                      className="space-y-3"
-                    >
+                    // Opção única (Radio)
+                    <div className="space-y-4">
                       {option.variations.map(variation => (
-                        <div key={variation.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value={variation.id} id={variation.id} />
-                            <label htmlFor={variation.id} className="text-sm font-medium">
-                              {variation.name}
-                            </label>
+                        <button
+                          key={variation.id}
+                          type="button"
+                          onClick={() =>
+                            handleRadioChange(option.id, variation.id)
+                          }
+                          className={`flex items-center justify-between transition-all w-full py-4 px-4 rounded-xl border-2
+                            ${
+                              selectedOptions[option.id]?.[0] === variation.id
+                                ? 'border-green-600 bg-green-50'
+                                : 'border-gray-200 bg-gray-50 hover:border-green-400 hover:bg-green-100'
+                            }
+                            focus:outline-none focus:ring-2 focus:ring-green-400`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all
+                                ${
+                                  selectedOptions[option.id]?.[0] === variation.id
+                                    ? 'border-green-600 bg-green-500'
+                                    : 'border-gray-300 bg-white'
+                                }`}
+                            >
+                              {selectedOptions[option.id]?.[0] === variation.id && (
+                                <span className="block w-3 h-3 bg-white rounded-full" />
+                              )}
+                            </span>
+                            <span className="text-base font-medium">{variation.name}</span>
                           </div>
-                          <span className="text-sm">
-                            {variation.price > 0 ? `+ R$ ${variation.price.toFixed(2)}` : 'Grátis'}
+                          <span className="text-base">
+                            {variation.price > 0 ? (
+                              <span className="text-green-700 font-semibold">
+                                + R$ {variation.price.toFixed(2)}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">Grátis</span>
+                            )}
                           </span>
-                        </div>
+                        </button>
                       ))}
-                    </RadioGroup>
+                    </div>
                   )}
                 </div>
               </Card>
@@ -342,11 +397,11 @@ const ProductDetail = () => {
         </div>
         
         <Button 
-          className="flex-1 big-btn text-base py-4 gap-2"
+          className="flex-1 big-btn text-lg py-5 gap-3 rounded-xl font-bold bg-green-600 hover:bg-green-700 transition-all"
           disabled={isButtonDisabled}
           onClick={handleAddToCart}
         >
-          <ShoppingCart className="h-5 w-5" />
+          <ShoppingCart className="h-6 w-6" />
           Adicionar
           <span className="ml-1 font-bold">
             R$ {calculateTotalPrice().toFixed(2)}
