@@ -354,10 +354,16 @@ const ProductDetail = () => {
         </>
       )}
       
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex flex-row items-center justify-between z-20 shadow-2xl">
-        <div className="flex items-center border rounded-md">
-          <button 
-            onClick={handleDecreaseQuantity} 
+      <div
+        className={`
+          fixed bottom-0 left-0 right-0 bg-white border-t p-4
+          flex flex-col gap-3 items-stretch z-20 shadow-2xl
+          md:flex-row md:items-center md:justify-between md:gap-0
+        `}
+      >
+        <div className="flex items-center border rounded-md self-center md:self-auto">
+          <button
+            onClick={handleDecreaseQuantity}
             className="px-5 py-3 text-gray-500 text-lg"
             disabled={quantity <= 1}
           >
@@ -366,16 +372,20 @@ const ProductDetail = () => {
           <div className="px-5 py-3 border-x text-lg font-bold">
             {quantity}
           </div>
-          <button 
-            onClick={handleIncreaseQuantity} 
+          <button
+            onClick={handleIncreaseQuantity}
             className="px-5 py-3 text-gray-500 text-lg"
           >
             <Plus className="h-5 w-5" />
           </button>
         </div>
-        
-        <Button 
-          className="ml-3 flex-1 big-btn text-lg py-5 gap-3 rounded-xl font-bold bg-red-600 hover:bg-red-700 transition-all"
+
+        <Button
+          className={`
+            big-btn text-lg py-4 gap-3 rounded-xl font-bold
+            bg-red-600 hover:bg-red-700 transition-all
+            w-full mt-3 md:w-auto md:ml-3 md:mt-0
+          `}
           disabled={isButtonDisabled}
           onClick={handleAddToCart}
         >
