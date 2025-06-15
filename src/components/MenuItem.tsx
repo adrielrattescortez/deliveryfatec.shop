@@ -84,16 +84,16 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
           </p>
         )}
         
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center">
+        <div className="mt-3 flex items-center justify-between">
+          <div className="flex flex-col">
             {item.vegetarian && (
-              <span className="text-gray-600 mr-2">
+              <span className="text-gray-600 mb-1">
                 ⚫
               </span>
             )}
-            <p className="text-sm">
+            <p className={`${hasOptions ? 'text-base font-semibold' : 'text-sm'}`}>
               {hasOptions ? (
-                <span>a partir de R$ {item.price.toFixed(2)}</span>
+                <span className="text-green-600">a partir de R$ {item.price.toFixed(2)}</span>
               ) : (
                 <span>R$ {item.price.toFixed(2)}</span>
               )}
