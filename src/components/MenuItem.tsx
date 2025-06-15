@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
@@ -78,7 +79,9 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
         
         <h3 className="font-medium">{item.name}</h3>
         {item.description && (
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+          <p className={`text-sm text-gray-500 mt-1 ${hasOptions ? 'line-clamp-3' : 'line-clamp-2'}`}>
+            {item.description}
+          </p>
         )}
         
         <div className="mt-2 flex items-center justify-between">
