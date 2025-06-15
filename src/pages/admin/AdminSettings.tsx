@@ -27,8 +27,6 @@ const AdminSettings = () => {
   const { storeInfo, updateStoreInfo } = useStore();
   const [logoPreview, setLogoPreview] = useState<string>(storeInfo.logo || "");
   const [bannerPreview, setBannerPreview] = useState<string>(storeInfo.banner || "");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   console.log("Current store info:", storeInfo);
@@ -63,13 +61,15 @@ const AdminSettings = () => {
     if (!file) return;
     
     console.log("Logo file selected:", file.name);
-    setLogoFile(file);
     
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
       console.log("Logo preview generated");
       setLogoPreview(result);
+      
+      // Atualizar imediatamente o store com a nova imagem
+      updateStoreInfo({ logo: result });
     };
     reader.readAsDataURL(file);
   };
@@ -79,13 +79,15 @@ const AdminSettings = () => {
     if (!file) return;
     
     console.log("Banner file selected:", file.name);
-    setBannerFile(file);
     
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
       console.log("Banner preview generated");
       setBannerPreview(result);
+      
+      // Atualizar imediatamente o store com a nova imagem
+      updateStoreInfo({ banner: result });
     };
     reader.readAsDataURL(file);
   };
@@ -112,10 +114,6 @@ const AdminSettings = () => {
       
       // Update the store info
       updateStoreInfo(updatedInfo);
-      
-      // Reset file states
-      setLogoFile(null);
-      setBannerFile(null);
       
       toast.success('Configurações salvas com sucesso!');
       console.log("Settings saved successfully");
