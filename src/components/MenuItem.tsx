@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
@@ -16,7 +17,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [hasOptions, setHasOptions] = useState(false);
-  
+
   useEffect(() => {
     const checkProductOptions = async () => {
       try {
@@ -33,23 +34,22 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
         console.error('Error checking product options:', error);
       }
     };
-    
+
     checkProductOptions();
   }, [item.id]);
-  
+
   const handleClick = () => {
     navigate(`/product/${item.id}`);
   };
-  
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Se o produto tem opções, redirecionar para página de detalhes
+
     if (hasOptions) {
       navigate(`/product/${item.id}`);
       return;
     }
-    
+
     addToCart({
       id: `${item.id}-${Date.now()}`,
       productId: item.id,
@@ -61,7 +61,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
       totalPrice: item.price,
     });
   };
-  
+
   return (
     <div 
       className="flex gap-3 items-center hover:bg-gray-50 p-3 rounded-2xl transition-colors cursor-pointer"
@@ -84,42 +84,40 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
           </p>
         )}
 
-        {/* Destacado: PREÇO "a partir de" */}
-        {hasOptions && (
-          <div className="mb-2">
-            <span className="text-xl font-bold text-green-600 block">
+        {/* PREÇO bem destacado */}
+        <div className="mb-2 flex flex-col items-start w-full">
+          {hasOptions ? (
+            <span className="text-xl font-bold text-green-600 mb-1 block">
               a partir de R$ {item.price.toFixed(2)}
             </span>
-          </div>
-        )}
-
-        {item.vegetarian && (
-          <div className="mb-1">
-            <span className="text-green-700">⚫</span>
-          </div>
-        )}
-
-        {/* BOTÃO e preço normal */}
-        <div className="flex items-end justify-between flex-1 mt-auto">
-          {!hasOptions && (
-            <p className="text-base font-semibold text-gray-900">R$ {item.price.toFixed(2)}</p>
+          ) : (
+            <span className="text-lg font-semibold text-gray-900 mb-1 block">
+              R$ {item.price.toFixed(2)}
+            </span>
           )}
 
+          {/* BOTÃO destacado vermelho, grande, sempre abaixo do preço */}
           <Button
             size="lg"
-            variant={hasOptions ? "default" : "outline"}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold text-base transition-all duration-150 
-              ${hasOptions ? "bg-green-600 text-white hover:bg-green-700" : ""}
-              shadow-sm`}
+            variant="default"
+            className={`flex items-center gap-2 rounded-xl w-full mt-2 font-bold text-base justify-center
+              bg-primary text-white hover:bg-primary/90 shadow-sm py-3
+              transition-all duration-150
+            `}
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-5 w-5" />
             <span>{hasOptions ? "Ver opções" : "Adicionar"}</span>
           </Button>
         </div>
+
+        {item.vegetarian && (
+          <div className="mb-1">
+            <span className="text-green-700">⚫</span>
+          </div>
+        )}
       </div>
 
-      {/* Só mostra a imagem se não estiver oculto */}
       {!hideImage && (
         <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-gray-100">
           <img 
@@ -134,3 +132,4 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
 };
 
 export default MenuItem;
+
