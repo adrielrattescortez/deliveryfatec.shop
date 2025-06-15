@@ -1,11 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StoreInfo } from '@/types/product';
+import { supabase } from '@/integrations/supabase/client';
 
 interface StoreContextType {
   storeInfo: StoreInfo;
-  updateStoreInfo: (info: Partial<StoreInfo>) => void;
-  refreshStoreInfo: () => void;
+  updateStoreInfo: (info: Partial<StoreInfo>) => Promise<void>;
+  refreshStoreInfo: () => Promise<void>;
+  loading: boolean;
 }
 
 const defaultStoreInfo: StoreInfo = {
@@ -21,59 +23,60 @@ const defaultStoreInfo: StoreInfo = {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [storeInfo, setStoreInfo] = useState<StoreInfo>(() => {
-    try {
-      const savedInfo = localStorage.getItem('storeInfo');
-      if (savedInfo) {
-        const parsedInfo = JSON.parse(savedInfo);
-        console.log("Loaded store info from localStorage:", parsedInfo);
-        return parsedInfo;
-      }
-      console.log("Using default store info");
-      return defaultStoreInfo;
-    } catch (error) {
-      console.error("Erro ao carregar informações da loja do localStorage:", error);
-      return defaultStoreInfo;
-    }
-  });
+  const [storeInfo, setStoreInfo] = useState<StoreInfo>(defaultStoreInfo);
+  const [loading, setLoading] = useState(true);
 
-  // Salvar informações da loja no localStorage sempre que ela mudar
+  // Obtém storeInfo do Supabase ao iniciar
   useEffect(() => {
-    try {
-      console.log("Saving store info to localStorage:", storeInfo);
-      localStorage.setItem('storeInfo', JSON.stringify(storeInfo));
-    } catch (error) {
-      console.error("Erro ao salvar informações da loja no localStorage:", error);
-    }
-  }, [storeInfo]);
+    refreshStoreInfo();
+    // eslint-disable-next-line
+  }, []);
 
-  const updateStoreInfo = (info: Partial<StoreInfo>) => {
-    console.log("Updating store info with:", info);
-    setStoreInfo(prevInfo => {
-      const updatedInfo = { ...prevInfo, ...info };
-      console.log("New store info:", updatedInfo);
-      
-      try {
-        localStorage.setItem('storeInfo', JSON.stringify(updatedInfo));
-        console.log("Store info saved to localStorage successfully");
-      } catch (error) {
-        console.error("Erro ao salvar informações atualizadas da loja:", error);
+  // Função para buscar storeInfo no Supabase
+  const refreshStoreInfo = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('store_info')
+        .select('*')
+        .limit(1)
+        .single();
+      if (data) {
+        setStoreInfo({
+          name: data.name,
+          description: data.description,
+          logo: data.logo,
+          banner: data.banner,
+          deliveryFee: Number(data.deliveryFee),
+          minOrder: Number(data.minOrder),
+          cuisineType: data.cuisineType
+        });
+      } else if (error) {
+        console.error("Erro ao buscar informações da loja:", error);
+        setStoreInfo(defaultStoreInfo);
       }
-      
-      return updatedInfo;
-    });
+    } catch (err) {
+      console.error("Erro ao buscar informações da loja:", err);
+      setStoreInfo(defaultStoreInfo);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const refreshStoreInfo = () => {
+  // Atualizar no Supabase
+  const updateStoreInfo = async (info: Partial<StoreInfo>) => {
+    setLoading(true);
     try {
-      const savedInfo = localStorage.getItem('storeInfo');
-      if (savedInfo) {
-        const parsedInfo = JSON.parse(savedInfo);
-        console.log("Refreshing store info from localStorage:", parsedInfo);
-        setStoreInfo(parsedInfo);
-      }
-    } catch (error) {
-      console.error("Erro ao atualizar informações da loja do localStorage:", error);
+      const { error } = await supabase
+        .from('store_info')
+        .update(info)
+        .eq('id', 1); // supondo apenas 1 registro na tabela
+      if (error) throw error;
+      await refreshStoreInfo();
+    } catch (err) {
+      console.error("Erro atualizando informações da loja:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -81,7 +84,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <StoreContext.Provider value={{ 
       storeInfo, 
       updateStoreInfo,
-      refreshStoreInfo
+      refreshStoreInfo,
+      loading
     }}>
       {children}
     </StoreContext.Provider>
