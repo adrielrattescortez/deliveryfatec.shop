@@ -186,7 +186,7 @@ const Checkout = () => {
     }
     try {
       setIsLoading(true);
-      
+
       let paymentIntentId = null;
       if (data.paymentMethod === 'stripe') {
         paymentIntentId = await createStripePaymentIntent();
@@ -195,7 +195,7 @@ const Checkout = () => {
           return;
         }
       }
-      
+
       if (currentUser?.id) {
         const { error } = await supabase
           .from('profiles')
@@ -212,14 +212,15 @@ const Checkout = () => {
             }
           })
           .eq('id', currentUser.id);
-        
+
         if (error) {
           console.error("Error updating profile:", error);
+          // Não interrompe, só avisa nos logs
         }
       }
-      
+
       const orderData = {
-        user_id: currentUser?.id || null,
+        user_id: currentUser?.id, // OBRIGATÓRIO: precisa do usuário!
         items: cartItems.map(item => ({
           product_id: item.productId,
           name: item.name,
@@ -241,25 +242,30 @@ const Checkout = () => {
         },
         total: total,
         delivery_fee: deliveryFee,
-        status: data.paymentMethod === 'stripe' ? 'awaiting_payment' : 'pending'
+        status: data.paymentMethod === 'stripe' ? 'awaiting_payment' : 'pending',
+        ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}) // espaço já pronto para stripe
       };
-      
+
       const { error: orderError } = await supabase
         .from('orders')
         .insert([orderData]);
-      
+
       if (orderError) {
+        // Mensagem de erro mais clara dependendo do motivo
+        if (orderError.message.includes('violates row-level security')) {
+          throw new Error("Erro de permissão ao salvar pedido. Certifique-se de estar logado!");
+        }
         throw new Error(`Erro ao salvar pedido: ${orderError.message}`);
       }
-      
+
       toast.success('Pedido realizado com sucesso!');
       clearCart();
-      
+
       navigate(currentUser ? '/customer/orders' : '/');
-      
-    } catch (error) {
+
+    } catch (error: any) {
       console.error('Erro ao finalizar pedido:', error);
-      toast.error('Ocorreu um erro ao finalizar o pedido. Tente novamente.');
+      toast.error(error?.message || 'Ocorreu um erro ao finalizar o pedido. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
