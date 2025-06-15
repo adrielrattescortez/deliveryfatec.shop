@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
@@ -65,10 +64,10 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
   
   return (
     <div 
-      className="flex gap-3 items-center hover:bg-gray-50 p-2 rounded-lg transition-colors cursor-pointer"
+      className="flex gap-3 items-center hover:bg-gray-50 p-3 rounded-2xl transition-colors cursor-pointer"
       onClick={handleClick}
     >
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col justify-between min-h-[135px]">
         {featured && item.popular && (
           <div className="mb-1">
             <span className="bg-amber-50 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-sm">
@@ -76,52 +75,53 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
             </span>
           </div>
         )}
-        
-        <h3 className="font-medium">{item.name}</h3>
+
+        <h3 className="font-medium text-lg">{item.name}</h3>
+
         {item.description && (
-          <p className={`text-sm text-gray-500 mt-1 ${hasOptions ? 'line-clamp-3' : 'line-clamp-2'}`}>
+          <p className={`text-sm text-gray-500 mt-1 mb-2 ${hasOptions ? 'line-clamp-3' : 'line-clamp-2'}`}>
             {item.description}
           </p>
         )}
-        
-        {item.vegetarian && (
-          <div className="mt-2">
-            <span className="text-gray-600">
-              ⚫
+
+        {/* Destacado: PREÇO "a partir de" */}
+        {hasOptions && (
+          <div className="mb-2">
+            <span className="text-xl font-bold text-green-600 block">
+              a partir de R$ {item.price.toFixed(2)}
             </span>
           </div>
         )}
-        
-        {hasOptions && (
-          <div className="mt-2">
-            <p className="text-base font-semibold text-green-600">
-              a partir de R$ {item.price.toFixed(2)}
-            </p>
+
+        {item.vegetarian && (
+          <div className="mb-1">
+            <span className="text-green-700">⚫</span>
           </div>
         )}
-        
-        <div className="mt-3 flex items-center justify-between">
+
+        {/* BOTÃO e preço normal */}
+        <div className="flex items-end justify-between flex-1 mt-auto">
           {!hasOptions && (
-            <p className="text-sm">
-              R$ {item.price.toFixed(2)}
-            </p>
+            <p className="text-base font-semibold text-gray-900">R$ {item.price.toFixed(2)}</p>
           )}
-          {hasOptions && <div></div>}
-          
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="flex items-center gap-1"
+
+          <Button
+            size="lg"
+            variant={hasOptions ? "default" : "outline"}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold text-base transition-all duration-150 
+              ${hasOptions ? "bg-green-600 text-white hover:bg-green-700" : ""}
+              shadow-sm`}
             onClick={handleAddToCart}
           >
-            <ShoppingCart className="h-4 w-4" />
+            <ShoppingCart className="h-5 w-5" />
             <span>{hasOptions ? "Ver opções" : "Adicionar"}</span>
           </Button>
         </div>
       </div>
+
       {/* Só mostra a imagem se não estiver oculto */}
       {!hideImage && (
-        <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0">
+        <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 border border-gray-100">
           <img 
             src={item.image} 
             alt={item.name}
