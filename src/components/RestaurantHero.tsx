@@ -32,11 +32,11 @@ const RestaurantHero: React.FC<RestaurantHeroProps> = ({ coverImage, logo }) => 
       </div>
 
       <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 md:-bottom-16">
-        <div className="hero-logo w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 rounded-full bg-white p-3 shadow-xl border-4 border-white overflow-hidden">
+        <div className="hero-logo w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 rounded-full bg-white p-4 shadow-xl border-4 border-white overflow-hidden">
           <img 
             src={logo} 
             alt="Restaurant logo"
-            className="w-full h-full object-cover rounded-full"
+            className="w-full h-full object-contain rounded-full"
           />
         </div>
       </div>
