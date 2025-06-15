@@ -1,7 +1,14 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StoreInfo } from '@/types/product';
 import { supabase } from '@/integrations/supabase/client';
+
+// Define the StoreContextType interface
+interface StoreContextType {
+  storeInfo: StoreInfo;
+  updateStoreInfo: (info: Partial<StoreInfo>) => Promise<void>;
+  refreshStoreInfo: () => Promise<void>;
+  loading: boolean;
+}
 
 // Set defaultStoreInfo with new fields
 const defaultStoreInfo: StoreInfo = {
