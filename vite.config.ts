@@ -1,10 +1,15 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { componentTagger } from "lovable-tagger";
 import path from "path";
 
-// Corrigido para usar apenas propriedades válidas no Vite e garantir SPA fallback automaticamente
-export default defineConfig({
-  plugins: [react()],
+// Use the function format to include componentTagger in dev mode per Lovable requirements
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    mode === "development" && componentTagger()
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -12,7 +17,7 @@ export default defineConfig({
   },
   server: {
     host: "::",
-    port: 8080, // conforme instruções, garantir porta 8080
+    port: 8080,
   },
   build: {
     rollupOptions: {
@@ -23,4 +28,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
