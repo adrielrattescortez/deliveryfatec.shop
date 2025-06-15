@@ -13,7 +13,6 @@ const RestaurantHero: React.FC<RestaurantHeroProps> = ({ coverImage, logo }) => 
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${coverImage})` }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
       </div>
       
       <div className="absolute top-4 right-4 flex gap-2 z-10">
