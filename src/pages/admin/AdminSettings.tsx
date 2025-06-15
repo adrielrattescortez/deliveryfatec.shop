@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -12,6 +11,7 @@ import { toast } from 'sonner';
 import { useStore } from '@/contexts/StoreContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, Settings, Store, Image } from 'lucide-react';
+import StoreAddressForm from "@/components/admin/StoreAddressForm";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome da loja é obrigatório' }),
@@ -307,6 +307,10 @@ const AdminSettings = () => {
             <TabsContent value="delivery">
               <Card className="p-6">
                 <h2 className="text-lg font-semibold mb-4">Configurações de entrega</h2>
+                
+                <div className="mb-6">
+                  <StoreAddressForm />
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField

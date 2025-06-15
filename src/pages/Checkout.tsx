@@ -42,7 +42,62 @@ const Checkout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isStripeLoading, setIsStripeLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  
+  const [calculatedFee, setCalculatedFee] = useState<number | null>(null);
+  const [deliveryBlocked, setDeliveryBlocked] = useState<string | null>(null);
+
+  // Função para chamar a Edge Function ao preencher endereço.
+  async function calculateFeeIfReady() {
+    const v = form.getValues();
+    // Checa se todos os campos necessários estão preenchidos
+    if (
+      v.street &&
+      v.number &&
+      v.city &&
+      v.state &&
+      v.neighborhood &&
+      v.zipCode &&
+      storeInfo.lat &&
+      storeInfo.lng
+    ) {
+      try {
+        const addressStr = `${v.street}, ${v.number}, ${v.neighborhood}, ${v.city}, ${v.state}, ${v.zipCode}`;
+        const { data, error, status } = await supabase.functions.invoke("calculate-delivery-fee", {
+          body: {
+            storeLat: storeInfo.lat,
+            storeLng: storeInfo.lng,
+            customerAddress: addressStr,
+          },
+        });
+        if (error || data?.error) {
+          if (data?.error === "Fora da área") {
+            setDeliveryBlocked("Este endereço está fora da área de entrega desta loja (limite de 10 km).");
+          } else {
+            setDeliveryBlocked("Não foi possível calcular entrega.");
+          }
+          setCalculatedFee(null);
+        } else {
+          setDeliveryBlocked(null);
+          setCalculatedFee(Number(data.deliveryFee));
+        }
+      } catch {
+        setDeliveryBlocked("Erro ao calcular a taxa de entrega.");
+        setCalculatedFee(null);
+      }
+    } else {
+      setDeliveryBlocked(null);
+      setCalculatedFee(null);
+    }
+  }
+
+  // Dispara quando os campos de endereço mudam
+  useEffect(() => {
+    const sub = form.watch(() => {
+      calculateFeeIfReady();
+    });
+    return () => sub.unsubscribe();
+    // eslint-disable-next-line
+  }, [storeInfo.lat, storeInfo.lng]);
+
   useEffect(() => {
     if (cartItems.length === 0) {
       navigate('/cart');
@@ -83,7 +138,7 @@ const Checkout = () => {
   });
   
   const subtotal = getCartTotal();
-  const deliveryFee = storeInfo.deliveryFee;
+  const deliveryFee = calculatedFee !== null ? calculatedFee : storeInfo.deliveryFee;
   const total = subtotal + deliveryFee;
   
   const createStripePaymentIntent = async () => {
@@ -125,6 +180,10 @@ const Checkout = () => {
   };
   
   const onSubmit = async (data: FormData) => {
+    if (deliveryBlocked) {
+      toast.error(deliveryBlocked);
+      return;
+    }
     try {
       setIsLoading(true);
       
@@ -537,6 +596,9 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+      {deliveryBlocked && (
+        <div className="bg-red-100 text-red-700 px-4 py-2 my-4 rounded">{deliveryBlocked}</div>
+      )}
     </div>
   );
 };

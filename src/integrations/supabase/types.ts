@@ -221,36 +221,45 @@ export type Database = {
       }
       store_info: {
         Row: {
+          address: string | null
           banner: string | null
           created_at: string | null
           cuisine_type: string | null
           delivery_fee: number
           description: string | null
           id: number
+          lat: number | null
+          lng: number | null
           logo: string | null
           min_order: number
           name: string
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
           banner?: string | null
           created_at?: string | null
           cuisine_type?: string | null
           delivery_fee?: number
           description?: string | null
           id?: number
+          lat?: number | null
+          lng?: number | null
           logo?: string | null
           min_order?: number
           name: string
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
           banner?: string | null
           created_at?: string | null
           cuisine_type?: string | null
           delivery_fee?: number
           description?: string | null
           id?: number
+          lat?: number | null
+          lng?: number | null
           logo?: string | null
           min_order?: number
           name?: string
