@@ -56,12 +56,12 @@ const Checkout = () => {
       v.state &&
       v.neighborhood &&
       v.zipCode &&
-      storeInfo.lat &&
-      storeInfo.lng
+      storeInfo.lat != null &&
+      storeInfo.lng != null
     ) {
       try {
         const addressStr = `${v.street}, ${v.number}, ${v.neighborhood}, ${v.city}, ${v.state}, ${v.zipCode}`;
-        const { data, error, status } = await supabase.functions.invoke("calculate-delivery-fee", {
+        const { data, error } = await supabase.functions.invoke("calculate-delivery-fee", {
           body: {
             storeLat: storeInfo.lat,
             storeLng: storeInfo.lng,

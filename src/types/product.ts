@@ -1,4 +1,3 @@
-
 export type ProductVariation = {
   id: string;
   name: string;
@@ -52,6 +51,9 @@ export type StoreInfo = {
   deliveryFee: number;
   minOrder: number;
   cuisineType: string;
+  address?: string | null; // Add address field (optional)
+  lat?: number | null;     // Add latitude (optional)
+  lng?: number | null;     // Add longitude (optional)
 };
 
 export type OrderStatus = 'pending' | 'processing' | 'delivering' | 'delivered' | 'cancelled';

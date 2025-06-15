@@ -24,7 +24,6 @@ const StoreAddressForm: React.FC = () => {
     setSaving(true);
 
     try {
-      // Solicitar a geocodificação do endereço
       if (!OPENROUTESERVICE_KEY) {
         toast.error("API Key do OpenRouteService não configurada. Acesse o painel de secrets do Supabase.");
         setSaving(false);
@@ -39,7 +38,7 @@ const StoreAddressForm: React.FC = () => {
       }
 
       await updateStoreInfo({
-        address,
+        address: address,
         lat: coords.lat,
         lng: coords.lng,
       });
