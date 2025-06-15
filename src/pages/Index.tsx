@@ -10,6 +10,7 @@ import type { FoodItem } from '@/components/FeaturedItems';
 import { supabase } from '@/integrations/supabase/client';
 import { useStore } from '@/contexts/StoreContext';
 import { toast } from 'sonner';
+import { useUser } from '@/contexts/UserContext';
 
 // Export the FOOD_ITEMS array so it can be imported in other files
 export const FOOD_ITEMS: FoodItem[] = [
@@ -44,6 +45,7 @@ export const FOOD_ITEMS: FoodItem[] = [
 
 const Index = () => {
   const { storeInfo } = useStore();
+  const { logout } = useUser();
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [categoryItems, setCategoryItems] = useState<{[key: string]: FoodItem[]}>({});
@@ -63,6 +65,18 @@ const Index = () => {
           .from('categories')
           .select('*')
           .order('name', { ascending: true });
+
+        // --- NOVO TRATAMENTO DE ERRO JWT EXPIRED ---
+        if (categoriesError?.message?.toLowerCase().includes("jwt expired")) {
+          // Mensagem clara e forçar logout
+          setLoadError("Sua sessão expirou. Por favor, faça login novamente.");
+          setIsLoading(false);
+          setTimeout(() => {
+            logout();
+          }, 2000);
+          return;
+        }
+        // --------------------------------------------
 
         if (categoriesError) {
           console.error("[Index] Erro ao buscar categorias:", categoriesError);
@@ -147,6 +161,14 @@ const Index = () => {
         }
 
       } catch (error: any) {
+        if (error?.message?.toLowerCase().includes("jwt expired")) {
+          setLoadError("Sua sessão expirou. Por favor, faça login novamente.");
+          setIsLoading(false);
+          setTimeout(() => {
+            logout();
+          }, 2000);
+          return;
+        }
         console.error("[Index] Erro inesperado ao buscar dados:", error);
         setLoadError("Erro inesperado: " + (typeof error === "string" ? error : error.message));
         setFoodItems([]);
