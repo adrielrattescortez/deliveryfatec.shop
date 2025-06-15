@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Search, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import CartIcon from './CartIcon';
+import ProductSearchDialog from "./ProductSearchDialog";
 
 interface HeaderProps {
   restaurantName: string;
@@ -15,9 +15,11 @@ interface HeaderProps {
 const Header = ({ restaurantName, showSearch = false, rightContent }: HeaderProps) => {
   const [searchVisible, setSearchVisible] = useState(false);
   const { currentUser } = useUser();
+  // Novo estado para abrir o dialog de busca
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const toggleSearch = () => {
-    setSearchVisible(!searchVisible);
+    setSearchOpen((open) => !open);
   };
 
   return (
@@ -47,16 +49,9 @@ const Header = ({ restaurantName, showSearch = false, rightContent }: HeaderProp
           </div>
         </div>
         
-        {showSearch && searchVisible && (
-          <div className="mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Pesquisar produtos..."
-                className="pl-10"
-              />
-            </div>
-          </div>
+        {/* Busca via dialog usando Command UI */}
+        {showSearch && (
+          <ProductSearchDialog open={searchOpen} setOpen={setSearchOpen} />
         )}
       </div>
     </header>
