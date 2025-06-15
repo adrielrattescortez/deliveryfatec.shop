@@ -79,13 +79,65 @@ const AdminOrders = () => {
             parsedItems = [];
           }
 
-          let parsedAddress = {};
+          // Corrigir o address para nunca ser {}
+          let parsedAddress: any = null;
           try {
-            parsedAddress = typeof order.address === 'string'
-              ? JSON.parse(order.address)
-              : order.address;
+            if (!order.address) {
+              parsedAddress = {
+                street: "",
+                number: "",
+                neighborhood: "",
+                city: "",
+                state: "",
+                zipCode: ""
+              };
+            } else if (typeof order.address === "string") {
+              const addr = JSON.parse(order.address);
+              parsedAddress = addr && typeof addr === "object"
+                ? {
+                    street: addr.street || "",
+                    number: addr.number || "",
+                    neighborhood: addr.neighborhood || "",
+                    city: addr.city || "",
+                    state: addr.state || "",
+                    zipCode: addr.zipCode || ""
+                  }
+                : {
+                    street: "",
+                    number: "",
+                    neighborhood: "",
+                    city: "",
+                    state: "",
+                    zipCode: ""
+                  };
+            } else if (typeof order.address === "object") {
+              parsedAddress = {
+                street: order.address.street || "",
+                number: order.address.number || "",
+                neighborhood: order.address.neighborhood || "",
+                city: order.address.city || "",
+                state: order.address.state || "",
+                zipCode: order.address.zipCode || "",
+              };
+            } else {
+              parsedAddress = {
+                street: "",
+                number: "",
+                neighborhood: "",
+                city: "",
+                state: "",
+                zipCode: ""
+              };
+            }
           } catch {
-            parsedAddress = {};
+            parsedAddress = {
+              street: "",
+              number: "",
+              neighborhood: "",
+              city: "",
+              state: "",
+              zipCode: ""
+            };
           }
 
           return {
@@ -97,7 +149,7 @@ const AdminOrders = () => {
         })
       );
       
-      setOrders(ordersWithProfiles);
+      setOrders(ordersWithProfiles as OrderDB[]);
     } catch (error: any) {
       toast.error(`Erro ao buscar pedidos: ${error.message}`);
       console.error('Error fetching orders:', error);
