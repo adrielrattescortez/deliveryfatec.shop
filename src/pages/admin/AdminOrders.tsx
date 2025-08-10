@@ -110,14 +110,15 @@ const AdminOrders = () => {
                     state: "",
                     zipCode: ""
                   };
-            } else if (typeof order.address === "object") {
+            } else if (typeof order.address === "object" && !Array.isArray(order.address)) {
+              const addrObj = order.address as Record<string, any>;
               parsedAddress = {
-                street: order.address.street || "",
-                number: order.address.number || "",
-                neighborhood: order.address.neighborhood || "",
-                city: order.address.city || "",
-                state: order.address.state || "",
-                zipCode: order.address.zipCode || "",
+                street: typeof addrObj.street === 'string' ? addrObj.street : "",
+                number: typeof addrObj.number === 'string' ? addrObj.number : "",
+                neighborhood: typeof addrObj.neighborhood === 'string' ? addrObj.neighborhood : "",
+                city: typeof addrObj.city === 'string' ? addrObj.city : "",
+                state: typeof addrObj.state === 'string' ? addrObj.state : "",
+                zipCode: typeof addrObj.zipCode === 'string' ? addrObj.zipCode : "",
               };
             } else {
               parsedAddress = {
