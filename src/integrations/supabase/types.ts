@@ -83,7 +83,7 @@ export type Database = {
           status: string
           total: number
           updated_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           address: Json
@@ -94,7 +94,7 @@ export type Database = {
           status?: string
           total?: number
           updated_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           address?: Json
@@ -105,7 +105,7 @@ export type Database = {
           status?: string
           total?: number
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
