@@ -323,9 +323,14 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                         <span className="font-medium">
                           {quantity}x {name}
                         </span>
-                        <span>
-                          R$ {Number(total).toFixed(2)}
-                        </span>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-600">
+                            R$ {(total / quantity).toFixed(2)} cada
+                          </div>
+                          <div className="font-medium">
+                            Total: R$ {Number(total).toFixed(2)}
+                          </div>
+                        </div>
                       </div>
                       {selectedOptions && Object.entries(selectedOptions).length > 0 && (
                         <div className="mt-1 text-sm text-gray-600">

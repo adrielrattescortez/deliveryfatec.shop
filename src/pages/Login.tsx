@@ -118,12 +118,6 @@ const Login = () => {
               Cadastre-se
             </Link>
           </p>
-          <p className="text-sm text-gray-600 mt-2">
-            É um administrador?{' '}
-            <Link to="/admin-login" className="font-medium text-primary hover:underline">
-              Login Admin
-            </Link>
-          </p>
         </div>
       </div>
     </div>

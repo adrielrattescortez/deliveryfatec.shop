@@ -15,7 +15,6 @@ import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
 import { useStore } from '@/contexts/StoreContext';
 import { supabase } from '@/integrations/supabase/client';
-import GuestSignupDialog from '@/components/checkout/GuestSignupDialog';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome é obrigatório' }),
@@ -45,11 +44,7 @@ const Checkout = () => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [calculatedFee, setCalculatedFee] = useState<number | null>(null);
   const [deliveryBlocked, setDeliveryBlocked] = useState<string | null>(null);
-
-  // Novos estados para o cadastro pós-pedido
-  const [guestDialogOpen, setGuestDialogOpen] = useState(false);
-  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
-  const [createdOrderEmail, setCreatedOrderEmail] = useState<string | null>(null);
+  const [isPostCheckout, setIsPostCheckout] = useState(false);
 
   // Função para chamar a Edge Function ao preencher endereço.
   async function calculateFeeIfReady() {
@@ -269,16 +264,17 @@ const Checkout = () => {
       const createdOrder = insertedOrders?.[0];
 
       toast.success('Pedido realizado com sucesso!');
+      
+      // Set post-checkout flag to prevent cart empty redirect
+      setIsPostCheckout(true);
       clearCart();
 
       // Se já está logado, segue o fluxo normal
       if (currentUser) {
         navigate('/customer/orders');
       } else if (createdOrder?.id) {
-        // Convidado: abre o diálogo para criar conta e tentar vincular
-        setCreatedOrderId(createdOrder.id);
-        setCreatedOrderEmail(data.email);
-        setGuestDialogOpen(true);
+        // Convidado: redireciona para página de criação de conta
+        navigate(`/claim-order?orderId=${createdOrder.id}&email=${encodeURIComponent(data.email)}`);
       } else {
         // Fallback: navega para home se não tiver id (não esperado)
         navigate('/');
@@ -292,7 +288,7 @@ const Checkout = () => {
     }
   };
   
-  if (cartItems.length === 0) {
+  if (cartItems.length === 0 && !isPostCheckout) {
     return null;
   }
   
@@ -625,25 +621,6 @@ const Checkout = () => {
       </div>
       {deliveryBlocked && (
         <div className="bg-red-100 text-red-700 px-4 py-2 my-4 rounded">{deliveryBlocked}</div>
-      )}
-
-      {/* Diálogo de criação de conta pós-pedido (fluxo convidado) */}
-      {guestDialogOpen && createdOrderId && (
-        <GuestSignupDialog
-          open={guestDialogOpen}
-          email={createdOrderEmail ?? form.getValues('email')}
-          orderId={createdOrderId}
-          onClose={() => {
-            setGuestDialogOpen(false);
-            // Para convidados que não querem criar conta agora:
-            navigate('/');
-          }}
-          onClaimed={() => {
-            setGuestDialogOpen(false);
-            // Usuário logado e pedido vinculado
-            navigate('/customer/orders');
-          }}
-        />
       )}
     </div>
   );

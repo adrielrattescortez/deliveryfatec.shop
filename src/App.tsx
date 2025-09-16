@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import ClaimOrder from "./pages/ClaimOrder";
 import CustomerAccount from "./pages/customer/CustomerAccount";
 import CustomerOrders from "./pages/customer/CustomerOrders";
 import CustomerProfile from "./pages/customer/CustomerProfile";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/claim-order" element={<ClaimOrder />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin-login" element={<AdminLogin />} />
                 <Route path="/admin-register" element={<AdminRegister />} />

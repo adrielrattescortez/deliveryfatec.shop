@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Eye, PackageOpen } from 'lucide-react';
+import { Search, Eye, PackageOpen, Printer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { OrderDB, OrderStatus, OrderItem } from '@/types/product';
@@ -187,6 +187,52 @@ const AdminOrders = () => {
       toast.error(`Erro ao atualizar status: ${error.message}`);
     }
   };
+
+  const printOrder = (order: OrderDB) => {
+    const itemsArray = Array.isArray(order.items) ? order.items : [];
+    const customerName = order.profiles?.name || 
+      (order.address && typeof order.address === 'object' && 'customer_name' in order.address 
+        ? order.address.customer_name 
+        : 'Cliente não encontrado');
+    
+    const printContent = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 400px;">
+        <h2 style="text-align: center; margin-bottom: 20px;">Pedido #${order.id.slice(0, 8)}</h2>
+        <p><strong>Cliente:</strong> ${customerName}</p>
+        <p><strong>Data:</strong> ${order.created_at ? format(parseISO(order.created_at), 'dd/MM/yyyy HH:mm') : 'Data inválida'}</p>
+        <p><strong>Status:</strong> ${OrderStatusMap[order.status as OrderStatus]?.label || 'Desconhecido'}</p>
+        
+        ${order.address && typeof order.address === 'object' ? `
+          <h3>Endereço de Entrega:</h3>
+          <p>${order.address.street || ''}, ${order.address.number || ''}</p>
+          <p>${order.address.neighborhood || ''}</p>
+          <p>${order.address.city || ''}, ${order.address.state || ''}</p>
+          <p>CEP: ${order.address.zipCode || ''}</p>
+        ` : ''}
+        
+        <h3>Itens:</h3>
+        ${itemsArray.map((item: any) => `
+          <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd;">
+            <p><strong>${item.quantity || 1}x ${item.name || 'Item'}</strong></p>
+            <p>Total: R$ ${(item.totalPrice || 0).toFixed(2)}</p>
+          </div>
+        `).join('')}
+        
+        <div style="border-top: 2px solid #000; padding-top: 10px; margin-top: 20px;">
+          <p><strong>Subtotal: R$ ${(order.total - order.delivery_fee).toFixed(2)}</strong></p>
+          <p><strong>Taxa de Entrega: R$ ${order.delivery_fee.toFixed(2)}</strong></p>
+          <p><strong>Total: R$ ${order.total.toFixed(2)}</strong></p>
+        </div>
+      </div>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
   
   const viewOrderDetails = (order: OrderDB) => {
     console.log('Viewing order details:', order);
@@ -289,12 +335,24 @@ const AdminOrders = () => {
                         {customerName}
                       </td>
                       <td className="py-4">
-                        <Badge 
-                          variant="default" 
-                          className={`${OrderStatusMap[order.status as OrderStatus]?.color || 'bg-gray-500'} hover:${OrderStatusMap[order.status as OrderStatus]?.color || 'bg-gray-500'}`}
-                        >
-                          {OrderStatusMap[order.status as OrderStatus]?.label || 'Desconhecido'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(newStatus) => updateOrderStatus(order.id, newStatus as OrderStatus)}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="awaiting_payment">Aguardando pagamento</SelectItem>
+                              <SelectItem value="pending">Pendente</SelectItem>
+                              <SelectItem value="processing">Em preparação</SelectItem>
+                              <SelectItem value="delivering">Em entrega</SelectItem>
+                              <SelectItem value="delivered">Entregue</SelectItem>
+                              <SelectItem value="cancelled">Cancelado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </td>
                       <td className="py-4 text-gray-600 hidden md:table-cell">
                         {order.created_at ? format(parseISO(order.created_at), 'dd/MM/yyyy HH:mm') : 'Data inválida'}
@@ -303,15 +361,22 @@ const AdminOrders = () => {
                         R$ {order.total.toFixed(2)}
                       </td>
                       <td className="py-4 text-right">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="gap-2"
-                          onClick={() => viewOrderDetails(order)}
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="hidden md:inline">Ver detalhes</span>
-                        </Button>
+                        <div className="flex gap-2 justify-end">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => printOrder(order)}
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => viewOrderDetails(order)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
