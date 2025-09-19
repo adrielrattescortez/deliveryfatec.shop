@@ -62,7 +62,7 @@ const AdminOrders = () => {
           // Fetch profile data separademente
           const { data: profile } = await supabase
             .from('profiles')
-            .select('name, phone, email')
+            .select('name, phone, email, technical_email, email_was_corrected')
             .eq('id', order.user_id)
             .maybeSingle();
             

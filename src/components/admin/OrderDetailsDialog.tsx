@@ -156,8 +156,14 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <h3>📞 Informações do Cliente</h3>
             <div class="customer-info">
               <p><strong>Nome:</strong> ${order.profiles?.name || 'Nome não disponível'}</p>
-              <p><strong>Telefone:</strong> ${order.profiles?.phone || 'Telefone não disponível'}</p>
-              <p><strong>Email:</strong> ${order.profiles?.email || 'Email não disponível'}</p>
+              <p><strong>Telefone:</strong> ${order.profiles?.phone || 'Telefone não disponível'} (WhatsApp preferencial)</p>
+              ${order.profiles?.email_was_corrected && order.profiles?.technical_email ? `
+                <p><strong>Email do cliente:</strong> ${order.profiles.email}</p>
+                <p style="font-size: 11px; color: #666;"><strong>Email técnico:</strong> ${order.profiles.technical_email}</p>
+                <p style="font-size: 11px; color: #b45309;">⚠️ Email foi corrigido automaticamente</p>
+              ` : `
+                <p><strong>Email:</strong> ${order.profiles?.email || 'Email não disponível'}</p>
+              `}
             </div>
           </div>
           
@@ -270,8 +276,22 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <h3 className="font-medium mb-2">Cliente</h3>
             <div className="bg-gray-50 p-3 rounded-md">
               <p className="font-medium">{order.profiles?.name || 'Nome não disponível'}</p>
-              <p>{order.profiles?.email || 'Email não disponível'}</p>
-              <p>{order.profiles?.phone || 'Telefone não disponível'}</p>
+              <p>{order.profiles?.phone || 'Telefone não disponível'} <span className="text-xs text-gray-500">(WhatsApp preferencial)</span></p>
+              
+              {/* Mostrar email original vs técnico quando aplicável */}
+              {order.profiles?.email_was_corrected && order.profiles?.technical_email ? (
+                <div className="space-y-1">
+                  <p className="text-amber-700 bg-amber-50 px-2 py-1 rounded text-sm">
+                    📧 <strong>Email digitado:</strong> {order.profiles.email}
+                    <span className="text-xs block text-amber-600">⚠️ Email corrigido automaticamente (formato inválido)</span>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    <strong>Email técnico:</strong> {order.profiles.technical_email}
+                  </p>
+                </div>
+              ) : (
+                <p>{order.profiles?.email || 'Email não disponível'}</p>
+              )}
             </div>
           </div>
           
