@@ -180,11 +180,116 @@ const Checkout = () => {
     }
   };
   
+  const generateTempPassword = () => {
+    return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+  };
+
+  const generateSubstituteEmail = () => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8);
+    return `guest-${timestamp}-${random}@checkout.internal`;
+  };
+
+  const createUserAlways = async (data: FormData) => {
+    const tempPassword = generateTempPassword();
+    let userCreated = null;
+    let emailWasCorrected = false;
+    let originalEmail = data.email;
+
+    // Primeira tentativa: usar email original
+    try {
+      console.log('Tentando criar usuário com email original:', data.email);
+      const signupResult = await supabase.auth.signUp({
+        email: data.email,
+        password: tempPassword,
+        options: {
+          data: {
+            name: data.name,
+          },
+        },
+      });
+
+      if (signupResult.error) {
+        throw signupResult.error;
+      }
+
+      userCreated = signupResult.data.user;
+      console.log('Usuário criado com sucesso com email original');
+      
+    } catch (error: any) {
+      console.log('Falha com email original, tentando com email substituto:', error.message);
+      
+      // Plano B: gerar email substituto
+      const substituteEmail = generateSubstituteEmail();
+      emailWasCorrected = true;
+      
+      try {
+        const signupResult = await supabase.auth.signUp({
+          email: substituteEmail,
+          password: tempPassword,
+          options: {
+            data: {
+              name: data.name,
+            },
+          },
+        });
+
+        if (signupResult.error) {
+          throw signupResult.error;
+        }
+
+        userCreated = signupResult.data.user;
+        console.log('Usuário criado com sucesso com email substituto:', substituteEmail);
+        
+      } catch (fallbackError: any) {
+        console.error('Falha ao criar usuário mesmo com email substituto:', fallbackError);
+        throw new Error('Não foi possível processar seu pedido. Tente novamente.');
+      }
+    }
+
+    if (!userCreated) {
+      throw new Error('Falha ao criar usuário para o pedido');
+    }
+
+    // Criar/atualizar perfil com todos os dados, incluindo email original
+    const profileData = {
+      id: userCreated.id,
+      name: data.name,
+      email: emailWasCorrected ? originalEmail : data.email, // email que o cliente digitou
+      phone: data.phone,
+      address: {
+        street: data.street,
+        number: data.number,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        zipCode: data.zipCode,
+      },
+      // Adicionar metadados para o admin saber quando email foi corrigido
+      ...(emailWasCorrected ? {
+        technical_email: userCreated.email, // email técnico gerado
+        email_was_corrected: true
+      } : {})
+    };
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert(profileData);
+
+    if (profileError) {
+      console.error('Erro ao criar/atualizar perfil:', profileError);
+      // Não interrompe o fluxo, pois o usuário já foi criado
+    }
+
+    return userCreated;
+  };
+
   const onSubmit = async (data: FormData) => {
     if (deliveryBlocked) {
       toast.error(deliveryBlocked);
       return;
     }
+    
     try {
       setIsLoading(true);
 
@@ -197,7 +302,16 @@ const Checkout = () => {
         }
       }
 
-      if (currentUser?.id) {
+      let effectiveUserId = currentUser?.id;
+
+      // Se não está logado, sempre criar um usuário
+      if (!currentUser) {
+        console.log('Usuário não logado, criando automaticamente...');
+        const createdUser = await createUserAlways(data);
+        effectiveUserId = createdUser.id;
+        console.log('Usuário criado com ID:', effectiveUserId);
+      } else {
+        // Se já está logado, apenas atualizar perfil
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -215,13 +329,12 @@ const Checkout = () => {
           .eq('id', currentUser.id);
 
         if (error) {
-          console.error("Error updating profile:", error);
-          // Não interrompe caso falhe (apenas loga)
+          console.error("Erro ao atualizar perfil:", error);
         }
       }
 
       const orderData = {
-        user_id: currentUser?.id, // ficará null para convidados (permitido pelo RLS)
+        user_id: effectiveUserId, // sempre terá um ID válido
         items: cartItems.map(item => ({
           product_id: item.productId,
           name: item.name,
@@ -247,7 +360,6 @@ const Checkout = () => {
         ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}),
       };
 
-      // Captura o pedido inserido para usar o ID no fluxo convidado
       const { data: insertedOrders, error: orderError } = await supabase
         .from('orders')
         .insert([orderData])
@@ -255,30 +367,17 @@ const Checkout = () => {
         .limit(1);
 
       if (orderError) {
-        if (orderError.message.includes('violates row-level security')) {
-          throw new Error("Erro de permissão ao salvar pedido. Certifique-se de estar logado!");
-        }
+        console.error('Erro ao salvar pedido:', orderError);
         throw new Error(`Erro ao salvar pedido: ${orderError.message}`);
       }
 
-      const createdOrder = insertedOrders?.[0];
-
       toast.success('Pedido realizado com sucesso!');
       
-      // Set post-checkout flag to prevent cart empty redirect
       setIsPostCheckout(true);
       clearCart();
 
-      // Se já está logado, segue o fluxo normal
-      if (currentUser) {
-        navigate('/customer/orders');
-      } else if (createdOrder?.id) {
-        // Convidado: redireciona para página de criação de conta
-        navigate(`/claim-order?orderId=${createdOrder.id}&email=${encodeURIComponent(data.email)}`);
-      } else {
-        // Fallback: navega para home se não tiver id (não esperado)
-        navigate('/');
-      }
+      // Sempre redirecionar para área do cliente (usuário sempre está logado agora)
+      navigate('/customer/orders');
 
     } catch (error: any) {
       console.error('Erro ao finalizar pedido:', error);
