@@ -183,19 +183,19 @@ const CustomerOrders = () => {
                   </ul>
                 </div>
                 
-                <div className="mt-4 flex justify-end gap-2">
+                <div className="mt-4 flex flex-col sm:flex-row justify-end gap-3">
                   {order.status === 'awaiting_payment' && (
                     <Button 
-                      variant="default" 
-                      size="sm"
+                      variant="default"
+                      className="w-full sm:w-auto"
                       onClick={() => handleCompletePayment(order)}
                     >
                       Completar Pagamento
                     </Button>
                   )}
                   <Button 
-                    variant="outline" 
-                    size="sm"
+                    variant="outline"
+                    className="w-full sm:w-auto"
                     onClick={() => viewOrderDetails(order)}
                   >
                     Ver detalhes
