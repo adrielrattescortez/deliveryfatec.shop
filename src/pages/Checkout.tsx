@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -16,25 +17,9 @@ import { useUser } from '@/contexts/UserContext';
 import { useStore } from '@/contexts/StoreContext';
 import { supabase } from '@/integrations/supabase/client';
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: 'Nome é obrigatório' }),
-  email: z.string().email({ message: 'Email inválido' }),
-  phone: z.string().min(8, { message: 'Telefone inválido' }),
-  street: z.string().min(3, { message: 'Endereço é obrigatório' }),
-  number: z.string().min(1, { message: 'Número é obrigatório' }),
-  neighborhood: z.string().min(2, { message: 'Bairro é obrigatório' }),
-  city: z.string().min(2, { message: 'Cidade é obrigatória' }),
-  state: z.string().min(2, { message: 'Estado é obrigatório' }),
-  zipCode: z.string().min(5, { message: 'CEP é obrigatório' }),
-  paymentMethod: z.enum(['cash', 'credit_card', 'pix', 'stripe']),
-  change: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
 const Checkout = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { currentUser } = useUser();
   const { storeInfo } = useStore();
@@ -45,6 +30,23 @@ const Checkout = () => {
   const [calculatedFee, setCalculatedFee] = useState<number | null>(null);
   const [deliveryBlocked, setDeliveryBlocked] = useState<string | null>(null);
   const [isPostCheckout, setIsPostCheckout] = useState(false);
+
+  const formSchema = z.object({
+    name: z.string().min(2, { message: t('checkout.name') }),
+    email: z.string().email({ message: t('checkout.email') }),
+    phone: z.string().min(8, { message: t('checkout.phone') }),
+    street: z.string().min(3, { message: t('checkout.address') }),
+    number: z.string().min(1, { message: t('checkout.address') }),
+    neighborhood: z.string().min(2, { message: t('checkout.address') }),
+    city: z.string().min(2, { message: t('checkout.city') }),
+    state: z.string().min(2, { message: t('checkout.state') }),
+    zipCode: z.string().min(5, { message: t('checkout.zipCode') }),
+    paymentMethod: z.enum(['cash', 'credit_card', 'pix', 'stripe']),
+    change: z.string().optional(),
+    notes: z.string().optional(),
+  });
+
+  type CheckoutFormData = z.infer<typeof formSchema>;
 
   // Função para chamar a Edge Function ao preencher endereço.
   async function calculateFeeIfReady() {
@@ -133,7 +135,7 @@ const Checkout = () => {
     notes: '',
   };
   
-  const form = useForm<FormData>({
+  const form = useForm<CheckoutFormData>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
@@ -190,7 +192,7 @@ const Checkout = () => {
     return `guest-${timestamp}-${random}@checkout.internal`;
   };
 
-  const createUserAlways = async (data: FormData) => {
+  const createUserAlways = async (data: CheckoutFormData) => {
     const tempPassword = generateTempPassword();
     let userCreated = null;
     let emailWasCorrected = false;
@@ -284,7 +286,7 @@ const Checkout = () => {
     return userCreated;
   };
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: CheckoutFormData) => {
     if (deliveryBlocked) {
       toast.error(deliveryBlocked);
       return;

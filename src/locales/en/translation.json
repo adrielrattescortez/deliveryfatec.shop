@@ -12,7 +12,20 @@
     "next": "Next",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "yes": "Yes",
+    "no": "No",
+    "name": "Name",
+    "description": "Description",
+    "price": "Price",
+    "category": "Category",
+    "image": "Image",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "total": "Total",
+    "items": "Items",
+    "clear": "Clear"
   },
   "header": {
     "restaurantName": "Restaurant"
@@ -24,7 +37,14 @@
     "categories": "Categories",
     "addToCart": "Add to Cart",
     "viewDetails": "View Details",
-    "outOfStock": "Out of Stock"
+    "outOfStock": "Out of Stock",
+    "welcome": "Welcome to",
+    "orderNow": "Order Now",
+    "freeDeliveryAbove": "Free Delivery Above",
+    "selectOptions": "Select Options",
+    "required": "Required",
+    "optional": "Optional",
+    "chooseOption": "Choose an option"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -54,7 +74,13 @@
     "pix": "PIX",
     "cash": "Cash on Delivery",
     "placeOrder": "Place Order",
-    "orderSummary": "Order Summary"
+    "orderSummary": "Order Summary",
+    "processingOrder": "Processing your order...",
+    "orderPlaced": "Order placed successfully!",
+    "fillAllFields": "Please fill in all required fields",
+    "yourOrder": "Your Order",
+    "discount": "Discount",
+    "notes": "Order Notes"
   },
   "customer": {
     "myAccount": "My Account",
@@ -94,6 +120,13 @@
     "categories": "Categories",
     "settings": "Settings",
     "logout": "Logout",
+    "welcome": "Welcome",
+    "totalOrders": "Total Orders",
+    "totalRevenue": "Total Revenue",
+    "pendingOrders": "Pending Orders",
+    "completedOrders": "Completed Orders",
+    "recentOrders": "Recent Orders",
+    "viewAll": "View All",
     "orders_page": {
       "title": "Order Management",
       "filterAll": "All",
@@ -106,7 +139,13 @@
       "status": "Status",
       "total": "Total",
       "actions": "Actions",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "updateStatus": "Update Status",
+      "orderDetails": "Order Details",
+      "customerInfo": "Customer Information",
+      "deliveryAddress": "Delivery Address",
+      "paymentInfo": "Payment Information",
+      "orderItems": "Order Items"
     },
     "products_page": {
       "title": "Product Management",
@@ -117,7 +156,23 @@
       "stock": "Stock",
       "actions": "Actions",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "productDetails": "Product Details",
+      "productOptions": "Product Options",
+      "addOption": "Add Option",
+      "optionName": "Option Name",
+      "variations": "Variations",
+      "saveProduct": "Save Product",
+      "deleteConfirm": "Are you sure you want to delete this product?"
+    },
+    "categories_page": {
+      "title": "Category Management",
+      "addCategory": "Add Category",
+      "categoryName": "Category Name",
+      "noCategories": "No categories yet",
+      "deleteConfirm": "Are you sure you want to delete this category?"
     },
     "settings_page": {
       "title": "Store Settings",
@@ -126,10 +181,12 @@
       "storeAddress": "Store Address",
       "storePhone": "Store Phone",
       "storeEmail": "Store Email",
+      "storeLogo": "Store Logo",
       "deliverySettings": "Delivery Settings",
       "deliveryFee": "Delivery Fee",
       "freeDeliveryFrom": "Free Delivery From",
-      "saveSettings": "Save Settings"
+      "saveSettings": "Save Settings",
+      "settingsSaved": "Settings saved successfully!"
     }
   },
   "auth": {
@@ -140,6 +197,13 @@
     "confirmPassword": "Confirm Password",
     "forgotPassword": "Forgot Password?",
     "noAccount": "Don't have an account?",
-    "hasAccount": "Already have an account?"
+    "hasAccount": "Already have an account?",
+    "adminLogin": "Admin Login",
+    "customerLogin": "Customer Login",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "enterEmail": "Enter your email",
+    "enterPassword": "Enter your password",
+    "fullName": "Full Name"
   }
 }

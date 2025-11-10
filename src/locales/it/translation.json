@@ -12,7 +12,20 @@
     "next": "Avanti",
     "loading": "Caricamento...",
     "error": "Errore",
-    "success": "Successo"
+    "success": "Successo",
+    "yes": "Sì",
+    "no": "No",
+    "name": "Nome",
+    "description": "Descrizione",
+    "price": "Prezzo",
+    "category": "Categoria",
+    "image": "Immagine",
+    "actions": "Azioni",
+    "status": "Stato",
+    "date": "Data",
+    "total": "Totale",
+    "items": "Articoli",
+    "clear": "Svuota"
   },
   "header": {
     "restaurantName": "Ristorante"
@@ -24,7 +37,14 @@
     "categories": "Categorie",
     "addToCart": "Aggiungi al Carrello",
     "viewDetails": "Vedi Dettagli",
-    "outOfStock": "Esaurito"
+    "outOfStock": "Esaurito",
+    "welcome": "Benvenuto a",
+    "orderNow": "Ordina Ora",
+    "freeDeliveryAbove": "Consegna Gratuita Da",
+    "selectOptions": "Seleziona Opzioni",
+    "required": "Richiesto",
+    "optional": "Opzionale",
+    "chooseOption": "Scegli un'opzione"
   },
   "cart": {
     "title": "Carrello",
@@ -54,7 +74,13 @@
     "pix": "PIX",
     "cash": "Contanti alla Consegna",
     "placeOrder": "Effettua Ordine",
-    "orderSummary": "Riepilogo Ordine"
+    "orderSummary": "Riepilogo Ordine",
+    "processingOrder": "Elaborazione ordine...",
+    "orderPlaced": "Ordine effettuato con successo!",
+    "fillAllFields": "Compila tutti i campi obbligatori",
+    "yourOrder": "Il Tuo Ordine",
+    "discount": "Sconto",
+    "notes": "Note Ordine"
   },
   "customer": {
     "myAccount": "Il Mio Account",
@@ -94,6 +120,13 @@
     "categories": "Categorie",
     "settings": "Impostazioni",
     "logout": "Esci",
+    "welcome": "Benvenuto",
+    "totalOrders": "Ordini Totali",
+    "totalRevenue": "Ricavi Totali",
+    "pendingOrders": "Ordini in Attesa",
+    "completedOrders": "Ordini Completati",
+    "recentOrders": "Ordini Recenti",
+    "viewAll": "Vedi Tutti",
     "orders_page": {
       "title": "Gestione Ordini",
       "filterAll": "Tutti",
@@ -106,7 +139,13 @@
       "status": "Stato",
       "total": "Totale",
       "actions": "Azioni",
-      "viewDetails": "Vedi Dettagli"
+      "viewDetails": "Vedi Dettagli",
+      "updateStatus": "Aggiorna Stato",
+      "orderDetails": "Dettagli Ordine",
+      "customerInfo": "Informazioni Cliente",
+      "deliveryAddress": "Indirizzo di Consegna",
+      "paymentInfo": "Informazioni Pagamento",
+      "orderItems": "Articoli Ordine"
     },
     "products_page": {
       "title": "Gestione Prodotti",
@@ -117,7 +156,23 @@
       "stock": "Scorte",
       "actions": "Azioni",
       "edit": "Modifica",
-      "delete": "Elimina"
+      "delete": "Elimina",
+      "available": "Disponibile",
+      "unavailable": "Non Disponibile",
+      "productDetails": "Dettagli Prodotto",
+      "productOptions": "Opzioni Prodotto",
+      "addOption": "Aggiungi Opzione",
+      "optionName": "Nome Opzione",
+      "variations": "Variazioni",
+      "saveProduct": "Salva Prodotto",
+      "deleteConfirm": "Sei sicuro di voler eliminare questo prodotto?"
+    },
+    "categories_page": {
+      "title": "Gestione Categorie",
+      "addCategory": "Aggiungi Categoria",
+      "categoryName": "Nome Categoria",
+      "noCategories": "Nessuna categoria ancora",
+      "deleteConfirm": "Sei sicuro di voler eliminare questa categoria?"
     },
     "settings_page": {
       "title": "Impostazioni Negozio",
@@ -126,10 +181,12 @@
       "storeAddress": "Indirizzo Negozio",
       "storePhone": "Telefono Negozio",
       "storeEmail": "Email Negozio",
+      "storeLogo": "Logo Negozio",
       "deliverySettings": "Impostazioni Consegna",
       "deliveryFee": "Spese di Consegna",
       "freeDeliveryFrom": "Consegna Gratuita Da",
-      "saveSettings": "Salva Impostazioni"
+      "saveSettings": "Salva Impostazioni",
+      "settingsSaved": "Impostazioni salvate con successo!"
     }
   },
   "auth": {
@@ -140,6 +197,13 @@
     "confirmPassword": "Conferma Password",
     "forgotPassword": "Password Dimenticata?",
     "noAccount": "Non hai un account?",
-    "hasAccount": "Hai già un account?"
+    "hasAccount": "Hai già un account?",
+    "adminLogin": "Accesso Amministratore",
+    "customerLogin": "Accesso Cliente",
+    "signIn": "Entra",
+    "signUp": "Registrati",
+    "enterEmail": "Inserisci la tua email",
+    "enterPassword": "Inserisci la tua password",
+    "fullName": "Nome Completo"
   }
 }

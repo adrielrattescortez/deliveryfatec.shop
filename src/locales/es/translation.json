@@ -12,7 +12,20 @@
     "next": "Siguiente",
     "loading": "Cargando...",
     "error": "Error",
-    "success": "Éxito"
+    "success": "Éxito",
+    "yes": "Sí",
+    "no": "No",
+    "name": "Nombre",
+    "description": "Descripción",
+    "price": "Precio",
+    "category": "Categoría",
+    "image": "Imagen",
+    "actions": "Acciones",
+    "status": "Estado",
+    "date": "Fecha",
+    "total": "Total",
+    "items": "Artículos",
+    "clear": "Limpiar"
   },
   "header": {
     "restaurantName": "Restaurante"
@@ -24,7 +37,14 @@
     "categories": "Categorías",
     "addToCart": "Agregar al Carrito",
     "viewDetails": "Ver Detalles",
-    "outOfStock": "Agotado"
+    "outOfStock": "Agotado",
+    "welcome": "Bienvenido a",
+    "orderNow": "Pedir Ahora",
+    "freeDeliveryAbove": "Entrega Gratis Desde",
+    "selectOptions": "Seleccionar Opciones",
+    "required": "Requerido",
+    "optional": "Opcional",
+    "chooseOption": "Elige una opción"
   },
   "cart": {
     "title": "Carrito de Compras",
@@ -54,7 +74,13 @@
     "pix": "PIX",
     "cash": "Efectivo Contra Entrega",
     "placeOrder": "Realizar Pedido",
-    "orderSummary": "Resumen del Pedido"
+    "orderSummary": "Resumen del Pedido",
+    "processingOrder": "Procesando tu pedido...",
+    "orderPlaced": "¡Pedido realizado con éxito!",
+    "fillAllFields": "Por favor, completa todos los campos requeridos",
+    "yourOrder": "Tu Pedido",
+    "discount": "Descuento",
+    "notes": "Notas del Pedido"
   },
   "customer": {
     "myAccount": "Mi Cuenta",
@@ -94,6 +120,13 @@
     "categories": "Categorías",
     "settings": "Configuración",
     "logout": "Cerrar Sesión",
+    "welcome": "Bienvenido",
+    "totalOrders": "Total de Pedidos",
+    "totalRevenue": "Ingresos Totales",
+    "pendingOrders": "Pedidos Pendientes",
+    "completedOrders": "Pedidos Completados",
+    "recentOrders": "Pedidos Recientes",
+    "viewAll": "Ver Todos",
     "orders_page": {
       "title": "Gestión de Pedidos",
       "filterAll": "Todos",
@@ -106,7 +139,13 @@
       "status": "Estado",
       "total": "Total",
       "actions": "Acciones",
-      "viewDetails": "Ver Detalles"
+      "viewDetails": "Ver Detalles",
+      "updateStatus": "Actualizar Estado",
+      "orderDetails": "Detalles del Pedido",
+      "customerInfo": "Información del Cliente",
+      "deliveryAddress": "Dirección de Entrega",
+      "paymentInfo": "Información de Pago",
+      "orderItems": "Artículos del Pedido"
     },
     "products_page": {
       "title": "Gestión de Productos",
@@ -117,7 +156,23 @@
       "stock": "Inventario",
       "actions": "Acciones",
       "edit": "Editar",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "available": "Disponible",
+      "unavailable": "No Disponible",
+      "productDetails": "Detalles del Producto",
+      "productOptions": "Opciones del Producto",
+      "addOption": "Agregar Opción",
+      "optionName": "Nombre de la Opción",
+      "variations": "Variaciones",
+      "saveProduct": "Guardar Producto",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar este producto?"
+    },
+    "categories_page": {
+      "title": "Gestión de Categorías",
+      "addCategory": "Agregar Categoría",
+      "categoryName": "Nombre de la Categoría",
+      "noCategories": "Aún no hay categorías",
+      "deleteConfirm": "¿Estás seguro de que quieres eliminar esta categoría?"
     },
     "settings_page": {
       "title": "Configuración de la Tienda",
@@ -126,10 +181,12 @@
       "storeAddress": "Dirección de la Tienda",
       "storePhone": "Teléfono de la Tienda",
       "storeEmail": "Correo de la Tienda",
+      "storeLogo": "Logo de la Tienda",
       "deliverySettings": "Configuración de Entrega",
       "deliveryFee": "Tarifa de Entrega",
       "freeDeliveryFrom": "Entrega Gratis Desde",
-      "saveSettings": "Guardar Configuración"
+      "saveSettings": "Guardar Configuración",
+      "settingsSaved": "¡Configuración guardada exitosamente!"
     }
   },
   "auth": {
@@ -140,6 +197,13 @@
     "confirmPassword": "Confirmar Contraseña",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "noAccount": "¿No tienes cuenta?",
-    "hasAccount": "¿Ya tienes cuenta?"
+    "hasAccount": "¿Ya tienes cuenta?",
+    "adminLogin": "Inicio de Sesión Administrador",
+    "customerLogin": "Inicio de Sesión Cliente",
+    "signIn": "Entrar",
+    "signUp": "Registrarse",
+    "enterEmail": "Ingresa tu correo electrónico",
+    "enterPassword": "Ingresa tu contraseña",
+    "fullName": "Nombre Completo"
   }
 }

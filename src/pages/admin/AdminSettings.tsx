@@ -2,6 +2,7 @@ import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,21 +14,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, Settings, Store, Image } from 'lucide-react';
 import StoreAddressForm from "@/components/admin/StoreAddressForm";
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: 'Nome da loja é obrigatório' }),
-  description: z.string().optional(),
-  cuisineType: z.string().min(2, { message: 'Tipo de culinária é obrigatório' }),
-  deliveryFee: z.coerce.number().min(0, { message: 'Taxa de entrega não pode ser negativa' }),
-  minOrder: z.coerce.number().min(0, { message: 'Pedido mínimo não pode ser negativo' }),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
 const AdminSettings = () => {
   const { storeInfo, updateStoreInfo } = useStore();
+  const { t } = useTranslation();
   const [logoPreview, setLogoPreview] = useState<string>(storeInfo.logo || "");
   const [bannerPreview, setBannerPreview] = useState<string>(storeInfo.banner || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const formSchema = z.object({
+    name: z.string().min(2, { message: t('admin.settings_page.storeName') }),
+    description: z.string().optional(),
+    cuisineType: z.string().min(2, { message: t('common.category') }),
+    deliveryFee: z.coerce.number().min(0, { message: t('admin.settings_page.deliveryFee') }),
+    minOrder: z.coerce.number().min(0, { message: t('checkout.orderSummary') }),
+  });
+  
+  type FormData = z.infer<typeof formSchema>;
   
   console.log("Current store info:", storeInfo);
   
