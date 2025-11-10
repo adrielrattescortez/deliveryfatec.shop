@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import CartIcon from './CartIcon';
 import ProductSearchDialog from "./ProductSearchDialog";
+import { LanguageSelector } from './LanguageSelector';
 
 interface HeaderProps {
   restaurantName: string;
@@ -39,6 +40,7 @@ const Header = ({ restaurantName, showSearch = false, rightContent }: HeaderProp
             
             {rightContent || (
               <div className="flex items-center gap-4">
+                <LanguageSelector />
                 <CartIcon />
                 
                 <Link to={currentUser ? (currentUser.role === 'admin' ? '/admin' : '/customer') : '/login'}>

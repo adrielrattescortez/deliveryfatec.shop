@@ -1,0 +1,145 @@
+{
+  "common": {
+    "search": "Cerca",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "add": "Aggiungi",
+    "close": "Chiudi",
+    "confirm": "Conferma",
+    "back": "Indietro",
+    "next": "Avanti",
+    "loading": "Caricamento...",
+    "error": "Errore",
+    "success": "Successo"
+  },
+  "header": {
+    "restaurantName": "Ristorante"
+  },
+  "menu": {
+    "title": "Menu",
+    "all": "Tutti",
+    "featured": "In Evidenza",
+    "categories": "Categorie",
+    "addToCart": "Aggiungi al Carrello",
+    "viewDetails": "Vedi Dettagli",
+    "outOfStock": "Esaurito"
+  },
+  "cart": {
+    "title": "Carrello",
+    "empty": "Il tuo carrello è vuoto",
+    "subtotal": "Subtotale",
+    "deliveryFee": "Spese di Consegna",
+    "total": "Totale",
+    "checkout": "Procedi all'Acquisto",
+    "continueShopping": "Continua gli Acquisti",
+    "remove": "Rimuovi",
+    "quantity": "Quantità"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "delivery": "Informazioni di Consegna",
+    "payment": "Metodo di Pagamento",
+    "name": "Nome Completo",
+    "email": "Email",
+    "phone": "Telefono",
+    "address": "Indirizzo",
+    "city": "Città",
+    "state": "Provincia",
+    "zipCode": "CAP",
+    "paymentMethod": "Metodo di Pagamento",
+    "creditCard": "Carta di Credito",
+    "debitCard": "Carta di Debito",
+    "pix": "PIX",
+    "cash": "Contanti alla Consegna",
+    "placeOrder": "Effettua Ordine",
+    "orderSummary": "Riepilogo Ordine"
+  },
+  "customer": {
+    "myAccount": "Il Mio Account",
+    "myOrders": "I Miei Ordini",
+    "editProfile": "Modifica Profilo",
+    "logout": "Esci",
+    "orders": {
+      "title": "I Miei Ordini",
+      "noOrders": "Non hai ancora effettuato ordini",
+      "orderNumber": "Ordine",
+      "date": "Data",
+      "status": "Stato",
+      "total": "Totale",
+      "viewDetails": "Vedi Dettagli",
+      "completePayment": "Completa Pagamento",
+      "statuses": {
+        "pending": "In Attesa",
+        "awaiting_payment": "In Attesa di Pagamento",
+        "confirmed": "Confermato",
+        "preparing": "In Preparazione",
+        "ready": "Pronto",
+        "out_for_delivery": "In Consegna",
+        "delivered": "Consegnato",
+        "cancelled": "Annullato"
+      }
+    },
+    "profile": {
+      "title": "Modifica Profilo",
+      "personalInfo": "Informazioni Personali",
+      "updateProfile": "Aggiorna Profilo"
+    }
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "orders": "Ordini",
+    "products": "Prodotti",
+    "categories": "Categorie",
+    "settings": "Impostazioni",
+    "logout": "Esci",
+    "orders_page": {
+      "title": "Gestione Ordini",
+      "filterAll": "Tutti",
+      "filterPending": "In Attesa",
+      "filterConfirmed": "Confermati",
+      "filterDelivered": "Consegnati",
+      "orderNumber": "Ordine",
+      "customer": "Cliente",
+      "date": "Data",
+      "status": "Stato",
+      "total": "Totale",
+      "actions": "Azioni",
+      "viewDetails": "Vedi Dettagli"
+    },
+    "products_page": {
+      "title": "Gestione Prodotti",
+      "addProduct": "Aggiungi Prodotto",
+      "name": "Nome",
+      "category": "Categoria",
+      "price": "Prezzo",
+      "stock": "Scorte",
+      "actions": "Azioni",
+      "edit": "Modifica",
+      "delete": "Elimina"
+    },
+    "settings_page": {
+      "title": "Impostazioni Negozio",
+      "storeInfo": "Informazioni Negozio",
+      "storeName": "Nome Negozio",
+      "storeAddress": "Indirizzo Negozio",
+      "storePhone": "Telefono Negozio",
+      "storeEmail": "Email Negozio",
+      "deliverySettings": "Impostazioni Consegna",
+      "deliveryFee": "Spese di Consegna",
+      "freeDeliveryFrom": "Consegna Gratuita Da",
+      "saveSettings": "Salva Impostazioni"
+    }
+  },
+  "auth": {
+    "login": "Accedi",
+    "register": "Registrati",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Conferma Password",
+    "forgotPassword": "Password Dimenticata?",
+    "noAccount": "Non hai un account?",
+    "hasAccount": "Hai già un account?"
+  }
+}

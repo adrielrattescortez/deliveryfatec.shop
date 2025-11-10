@@ -2,10 +2,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
+import { useTranslation } from 'react-i18next';
 import { User, ShoppingBag, LogOut } from 'lucide-react';
 
 const CustomerSidebar = () => {
   const { logout, currentUser } = useUser();
+  const { t } = useTranslation();
 
   return (
     <div className="w-full md:w-64 bg-white rounded-lg shadow-sm p-6">
@@ -32,7 +34,7 @@ const CustomerSidebar = () => {
           }
         >
           <User size={18} />
-          <span>Minha Conta</span>
+          <span>{t('customer.myAccount')}</span>
         </NavLink>
         
         <NavLink 
@@ -44,7 +46,7 @@ const CustomerSidebar = () => {
           }
         >
           <ShoppingBag size={18} />
-          <span>Meus Pedidos</span>
+          <span>{t('customer.myOrders')}</span>
         </NavLink>
         
         <NavLink 
@@ -56,7 +58,7 @@ const CustomerSidebar = () => {
           }
         >
           <User size={18} />
-          <span>Editar Perfil</span>
+          <span>{t('customer.editProfile')}</span>
         </NavLink>
         
         <button
@@ -64,7 +66,7 @@ const CustomerSidebar = () => {
           className="w-full flex items-center gap-3 p-3 rounded-md text-gray-700 hover:bg-gray-100 transition-all"
         >
           <LogOut size={18} />
-          <span>Sair</span>
+          <span>{t('customer.logout')}</span>
         </button>
       </nav>
     </div>

@@ -1,0 +1,145 @@
+{
+  "common": {
+    "search": "Buscar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito"
+  },
+  "header": {
+    "restaurantName": "Restaurante"
+  },
+  "menu": {
+    "title": "Menú",
+    "all": "Todos",
+    "featured": "Destacados",
+    "categories": "Categorías",
+    "addToCart": "Agregar al Carrito",
+    "viewDetails": "Ver Detalles",
+    "outOfStock": "Agotado"
+  },
+  "cart": {
+    "title": "Carrito de Compras",
+    "empty": "Tu carrito está vacío",
+    "subtotal": "Subtotal",
+    "deliveryFee": "Tarifa de Entrega",
+    "total": "Total",
+    "checkout": "Proceder al Pago",
+    "continueShopping": "Continuar Comprando",
+    "remove": "Eliminar",
+    "quantity": "Cantidad"
+  },
+  "checkout": {
+    "title": "Pagar",
+    "delivery": "Información de Entrega",
+    "payment": "Método de Pago",
+    "name": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "city": "Ciudad",
+    "state": "Estado",
+    "zipCode": "Código Postal",
+    "paymentMethod": "Método de Pago",
+    "creditCard": "Tarjeta de Crédito",
+    "debitCard": "Tarjeta de Débito",
+    "pix": "PIX",
+    "cash": "Efectivo Contra Entrega",
+    "placeOrder": "Realizar Pedido",
+    "orderSummary": "Resumen del Pedido"
+  },
+  "customer": {
+    "myAccount": "Mi Cuenta",
+    "myOrders": "Mis Pedidos",
+    "editProfile": "Editar Perfil",
+    "logout": "Cerrar Sesión",
+    "orders": {
+      "title": "Mis Pedidos",
+      "noOrders": "Aún no has realizado ningún pedido",
+      "orderNumber": "Pedido",
+      "date": "Fecha",
+      "status": "Estado",
+      "total": "Total",
+      "viewDetails": "Ver Detalles",
+      "completePayment": "Completar Pago",
+      "statuses": {
+        "pending": "Pendiente",
+        "awaiting_payment": "Esperando Pago",
+        "confirmed": "Confirmado",
+        "preparing": "Preparando",
+        "ready": "Listo",
+        "out_for_delivery": "En Camino",
+        "delivered": "Entregado",
+        "cancelled": "Cancelado"
+      }
+    },
+    "profile": {
+      "title": "Editar Perfil",
+      "personalInfo": "Información Personal",
+      "updateProfile": "Actualizar Perfil"
+    }
+  },
+  "admin": {
+    "dashboard": "Panel de Control",
+    "orders": "Pedidos",
+    "products": "Productos",
+    "categories": "Categorías",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión",
+    "orders_page": {
+      "title": "Gestión de Pedidos",
+      "filterAll": "Todos",
+      "filterPending": "Pendientes",
+      "filterConfirmed": "Confirmados",
+      "filterDelivered": "Entregados",
+      "orderNumber": "Pedido",
+      "customer": "Cliente",
+      "date": "Fecha",
+      "status": "Estado",
+      "total": "Total",
+      "actions": "Acciones",
+      "viewDetails": "Ver Detalles"
+    },
+    "products_page": {
+      "title": "Gestión de Productos",
+      "addProduct": "Agregar Producto",
+      "name": "Nombre",
+      "category": "Categoría",
+      "price": "Precio",
+      "stock": "Inventario",
+      "actions": "Acciones",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "settings_page": {
+      "title": "Configuración de la Tienda",
+      "storeInfo": "Información de la Tienda",
+      "storeName": "Nombre de la Tienda",
+      "storeAddress": "Dirección de la Tienda",
+      "storePhone": "Teléfono de la Tienda",
+      "storeEmail": "Correo de la Tienda",
+      "deliverySettings": "Configuración de Entrega",
+      "deliveryFee": "Tarifa de Entrega",
+      "freeDeliveryFrom": "Entrega Gratis Desde",
+      "saveSettings": "Guardar Configuración"
+    }
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?"
+  }
+}

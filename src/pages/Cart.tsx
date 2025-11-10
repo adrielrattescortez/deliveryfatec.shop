@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import Header from '@/components/Header';
@@ -9,6 +10,7 @@ import { useStore } from '@/contexts/StoreContext';
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
   const { storeInfo } = useStore();
   
@@ -27,10 +29,10 @@ const Cart = () => {
         <div className="max-w-4xl mx-auto p-4 md:p-6 bg-white mt-6 rounded-lg shadow-sm">
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <ShoppingBag className="h-20 w-20 text-gray-300 mb-6" />
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Seu carrinho está vazio</h2>
-            <p className="text-gray-500 mb-8 text-lg">Adicione itens para continuar comprando</p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('cart.empty')}</h2>
+            <p className="text-gray-500 mb-8 text-lg">{t('cart.continueShopping')}</p>
             <Button asChild className="big-btn">
-              <Link to="/">Voltar para o cardápio</Link>
+              <Link to="/">{t('common.back')}</Link>
             </Button>
           </div>
         </div>
@@ -45,10 +47,10 @@ const Cart = () => {
         <div className="flex items-center mb-7">
           <button onClick={() => navigate('/')} className="flex items-center text-gray-700 font-medium hover:underline">
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Voltar
+            {t('common.back')}
           </button>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-7">Seu Carrinho</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-7">{t('cart.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -115,24 +117,24 @@ const Cart = () => {
             </div>
             <div className="mt-5">
               <Button variant="outline" onClick={clearCart} className="text-base">
-                Limpar carrinho
+                {t('cart.remove')}
               </Button>
             </div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-6 h-fit">
-            <h3 className="text-lg md:text-xl font-semibold mb-5">Resumo do pedido</h3>
+            <h3 className="text-lg md:text-xl font-semibold mb-5">{t('checkout.orderSummary')}</h3>
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
+                <span className="text-gray-600">{t('cart.subtotal')}</span>
                 <span className="font-medium">R$ {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Taxa de entrega</span>
+                <span className="text-gray-600">{t('cart.deliveryFee')}</span>
                 <span className="font-medium">R$ {deliveryFee.toFixed(2)}</span>
               </div>
               <Separator className="my-3" />
               <div className="flex justify-between font-semibold text-lg">
-                <span>Total</span>
+                <span>{t('cart.total')}</span>
                 <span>R$ {total.toFixed(2)}</span>
               </div>
             </div>
@@ -141,10 +143,10 @@ const Cart = () => {
               size="lg"
               onClick={handleCheckout}
             >
-              Finalizar Pedido
+              {t('cart.checkout')}
             </Button>
             <p className="text-xs text-gray-500 text-center mt-4">
-              Ao finalizar seu pedido, você será redirecionado para a página de pagamento
+              {t('checkout.orderSummary')}
             </p>
           </div>
         </div>

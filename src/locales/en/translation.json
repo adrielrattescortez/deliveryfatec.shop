@@ -1,0 +1,145 @@
+{
+  "common": {
+    "search": "Search",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "header": {
+    "restaurantName": "Restaurant"
+  },
+  "menu": {
+    "title": "Menu",
+    "all": "All",
+    "featured": "Featured Items",
+    "categories": "Categories",
+    "addToCart": "Add to Cart",
+    "viewDetails": "View Details",
+    "outOfStock": "Out of Stock"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "deliveryFee": "Delivery Fee",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "continueShopping": "Continue Shopping",
+    "remove": "Remove",
+    "quantity": "Quantity"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "delivery": "Delivery Information",
+    "payment": "Payment Method",
+    "name": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "state": "State",
+    "zipCode": "ZIP Code",
+    "paymentMethod": "Payment Method",
+    "creditCard": "Credit Card",
+    "debitCard": "Debit Card",
+    "pix": "PIX",
+    "cash": "Cash on Delivery",
+    "placeOrder": "Place Order",
+    "orderSummary": "Order Summary"
+  },
+  "customer": {
+    "myAccount": "My Account",
+    "myOrders": "My Orders",
+    "editProfile": "Edit Profile",
+    "logout": "Logout",
+    "orders": {
+      "title": "My Orders",
+      "noOrders": "You haven't placed any orders yet",
+      "orderNumber": "Order",
+      "date": "Date",
+      "status": "Status",
+      "total": "Total",
+      "viewDetails": "View Details",
+      "completePayment": "Complete Payment",
+      "statuses": {
+        "pending": "Pending",
+        "awaiting_payment": "Awaiting Payment",
+        "confirmed": "Confirmed",
+        "preparing": "Preparing",
+        "ready": "Ready",
+        "out_for_delivery": "Out for Delivery",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      }
+    },
+    "profile": {
+      "title": "Edit Profile",
+      "personalInfo": "Personal Information",
+      "updateProfile": "Update Profile"
+    }
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "products": "Products",
+    "categories": "Categories",
+    "settings": "Settings",
+    "logout": "Logout",
+    "orders_page": {
+      "title": "Order Management",
+      "filterAll": "All",
+      "filterPending": "Pending",
+      "filterConfirmed": "Confirmed",
+      "filterDelivered": "Delivered",
+      "orderNumber": "Order",
+      "customer": "Customer",
+      "date": "Date",
+      "status": "Status",
+      "total": "Total",
+      "actions": "Actions",
+      "viewDetails": "View Details"
+    },
+    "products_page": {
+      "title": "Product Management",
+      "addProduct": "Add Product",
+      "name": "Name",
+      "category": "Category",
+      "price": "Price",
+      "stock": "Stock",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "settings_page": {
+      "title": "Store Settings",
+      "storeInfo": "Store Information",
+      "storeName": "Store Name",
+      "storeAddress": "Store Address",
+      "storePhone": "Store Phone",
+      "storeEmail": "Store Email",
+      "deliverySettings": "Delivery Settings",
+      "deliveryFee": "Delivery Fee",
+      "freeDeliveryFrom": "Free Delivery From",
+      "saveSettings": "Save Settings"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  }
+}

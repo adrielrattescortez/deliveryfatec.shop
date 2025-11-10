@@ -4,25 +4,27 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/contexts/UserContext';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
-const statusMap = {
-  pending: { label: 'Pendente', color: 'bg-yellow-500' },
-  processing: { label: 'Em preparação', color: 'bg-amber-500' },
-  delivering: { label: 'Em entrega', color: 'bg-blue-500' },
-  delivered: { label: 'Entregue', color: 'bg-green-500' },
-  cancelled: { label: 'Cancelado', color: 'bg-red-500' },
-  awaiting_payment: { label: 'Aguardando pagamento', color: 'bg-purple-500' }
-};
-
 const CustomerOrders = () => {
   const { currentUser } = useUser();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const statusMap = {
+    pending: { label: t('customer.orders.statuses.pending'), color: 'bg-yellow-500' },
+    processing: { label: t('customer.orders.statuses.preparing'), color: 'bg-amber-500' },
+    delivering: { label: t('customer.orders.statuses.out_for_delivery'), color: 'bg-blue-500' },
+    delivered: { label: t('customer.orders.statuses.delivered'), color: 'bg-green-500' },
+    cancelled: { label: t('customer.orders.statuses.cancelled'), color: 'bg-red-500' },
+    awaiting_payment: { label: t('customer.orders.statuses.awaiting_payment'), color: 'bg-purple-500' }
+  };
   
   useEffect(() => {
     if (currentUser?.id) {
@@ -148,21 +150,21 @@ const CustomerOrders = () => {
                 <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                   <div>
                     <div className="flex items-center gap-3">
-                      <h3 className="font-semibold">Pedido #{order.id.slice(0, 8)}</h3>
+                      <h3 className="font-semibold">{t('customer.orders.orderNumber')} #{order.id.slice(0, 8)}</h3>
                       <Badge 
                         variant="default" 
                         className={`${statusMap[status]?.color || 'bg-gray-500'} hover:${statusMap[status]?.color || 'bg-gray-500'}`}
                       >
-                        {statusMap[status]?.label || 'Status desconhecido'}
+                        {statusMap[status]?.label || t('customer.orders.status')}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-500 mt-1">
-                      Realizado em {formatDate(order.created_at)}
+                      {formatDate(order.created_at)}
                     </p>
                   </div>
                   
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">Total</p>
+                    <p className="text-sm text-gray-500">{t('cart.total')}</p>
                     <p className="font-semibold">R$ {order.total.toFixed(2)}</p>
                   </div>
                 </div>
@@ -190,7 +192,7 @@ const CustomerOrders = () => {
                       className="w-full sm:w-auto"
                       onClick={() => handleCompletePayment(order)}
                     >
-                      Completar Pagamento
+                      {t('customer.orders.completePayment')}
                     </Button>
                   )}
                   <Button 
@@ -198,7 +200,7 @@ const CustomerOrders = () => {
                     className="w-full sm:w-auto"
                     onClick={() => viewOrderDetails(order)}
                   >
-                    Ver detalhes
+                    {t('customer.orders.viewDetails')}
                   </Button>
                 </div>
               </Card>
