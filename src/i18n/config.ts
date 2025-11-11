@@ -10,15 +10,38 @@ const resources = {
   it: { translation: it },
 };
 
+// Função para obter idioma da URL
+const getLanguageFromURL = () => {
+  const params = new URLSearchParams(window.location.search);
+  const langParam = params.get('lang');
+  if (langParam && ['en', 'es', 'it'].includes(langParam)) {
+    return langParam;
+  }
+  return null;
+};
+
+// Prioridade: URL > localStorage > 'en'
+const initialLanguage = getLanguageFromURL() || localStorage.getItem('language') || 'en';
+
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: localStorage.getItem('language') || 'en',
+    lng: initialLanguage,
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
     },
   });
+
+// Sincronizar mudanças de idioma com URL e localStorage
+i18n.on('languageChanged', (lng) => {
+  localStorage.setItem('language', lng);
+  
+  // Atualizar URL com o idioma
+  const url = new URL(window.location.href);
+  url.searchParams.set('lang', lng);
+  window.history.replaceState({}, '', url.toString());
+});
 
 export default i18n;

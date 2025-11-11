@@ -44,7 +44,9 @@
     "selectOptions": "Seleziona Opzioni",
     "required": "Richiesto",
     "optional": "Opzionale",
-    "chooseOption": "Scegli un'opzione"
+    "chooseOption": "Scegli un'opzione",
+    "from": "da",
+    "mostOrdered": "Più Ordinato"
   },
   "cart": {
     "title": "Carrello",

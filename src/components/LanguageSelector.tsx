@@ -1,5 +1,6 @@
 import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,10 +17,16 @@ const languages = [
 
 export const LanguageSelector = () => {
   const { i18n } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
+    
+    // Atualizar a URL com o novo idioma
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('lang', lng);
+    setSearchParams(newParams);
   };
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];

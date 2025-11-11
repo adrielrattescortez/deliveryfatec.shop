@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import RestaurantHero from '@/components/RestaurantHero';
 import RestaurantInfo from '@/components/RestaurantInfo';
@@ -45,6 +47,8 @@ export const FOOD_ITEMS: FoodItem[] = [
 ];
 
 const Index = () => {
+  const { t, i18n } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { storeInfo, loading: storeLoading } = useStore();
   const { logout } = useUser();
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
@@ -53,6 +57,16 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Sincronizar idioma com URL
+  useEffect(() => {
+    const langParam = searchParams.get('lang');
+    if (langParam && ['en', 'es', 'it'].includes(langParam)) {
+      if (i18n.language !== langParam) {
+        i18n.changeLanguage(langParam);
+      }
+    }
+  }, [searchParams, i18n]);
 
   // Adicionar logs para depuração
   useEffect(() => {
@@ -75,7 +89,7 @@ const Index = () => {
         // --- NOVO TRATAMENTO DE ERRO JWT EXPIRED ---
         if (categoriesError?.message?.toLowerCase().includes("jwt expired")) {
           // Mensagem clara e forçar logout
-          setLoadError("Sua sessão expirou. Por favor, faça login novamente.");
+          setLoadError(t('common.error'));
           setIsLoading(false);
           setTimeout(() => {
             logout();
@@ -86,7 +100,7 @@ const Index = () => {
 
         if (categoriesError) {
           console.error("[Index] Erro ao buscar categorias:", categoriesError);
-          setLoadError("Erro ao carregar categorias: " + categoriesError.message);
+          setLoadError(t('common.error') + ': ' + categoriesError.message);
           setCategories([]);
           setCategoryItems({});
           setFoodItems([]);
@@ -97,7 +111,7 @@ const Index = () => {
           console.warn("[Index] Nenhuma categoria cadastrada.");
           setCategories([]);
           setCategoryItems({});
-          setLoadError("Nenhuma categoria cadastrada no sistema.");
+          setLoadError(t('common.error'));
           setFoodItems([]);
           setIsLoading(false);
           return;
@@ -117,7 +131,7 @@ const Index = () => {
 
         if (productsError) {
           console.error("[Index] Erro ao buscar produtos:", productsError);
-          setLoadError("Erro ao carregar produtos: " + productsError.message);
+          setLoadError(t('common.error') + ': ' + productsError.message);
           setFoodItems([]);
           return;
         }
@@ -125,7 +139,7 @@ const Index = () => {
         if (!productsData || productsData.length === 0) {
           console.warn("[Index] Nenhum produto cadastrado.");
           setFoodItems([]);
-          setLoadError("Nenhum produto cadastrado no sistema.");
+          setLoadError(t('common.error'));
           setIsLoading(false);
           return;
         }
@@ -168,7 +182,7 @@ const Index = () => {
 
       } catch (error: any) {
         if (error?.message?.toLowerCase().includes("jwt expired")) {
-          setLoadError("Sua sessão expirou. Por favor, faça login novamente.");
+          setLoadError(t('common.error'));
           setIsLoading(false);
           setTimeout(() => {
             logout();
@@ -176,7 +190,7 @@ const Index = () => {
           return;
         }
         console.error("[Index] Erro inesperado ao buscar dados:", error);
-        setLoadError("Erro inesperado: " + (typeof error === "string" ? error : error.message));
+        setLoadError(t('common.error') + ': ' + (typeof error === "string" ? error : error.message));
         setFoodItems([]);
         setCategories([]);
         setCategoryItems({});
@@ -186,7 +200,7 @@ const Index = () => {
     };
 
     fetchProducts();
-  }, []);
+  }, [t]);
 
   // --------------------------
   // NOVO LOADING ENQUANTO STORE CARREGA
@@ -195,7 +209,7 @@ const Index = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <div className="text-blue-500 font-medium">Carregando loja...</div>
+        <div className="text-blue-500 font-medium">{t('common.loading')}</div>
       </div>
     );
   }
@@ -242,13 +256,13 @@ const Index = () => {
       
       <div className="bg-white">
         {isLoading ? (
-          <div className="p-8 text-center">Carregando produtos...</div>
+          <div className="p-8 text-center">{t('common.loading')}</div>
         ) : loadError ? (
           <div className="p-8 text-center text-red-600">
             {loadError}
           </div>
         ) : (
-          <FeaturedItems title="Destaques" items={foodItems} />
+          <FeaturedItems title={t('menu.featured')} items={foodItems} />
         )}
       </div>
       
@@ -256,7 +270,7 @@ const Index = () => {
       
       <div className="bg-white">
         {isLoading ? (
-          <div className="p-8 text-center">Carregando categorias...</div>
+          <div className="p-8 text-center">{t('common.loading')}</div>
         ) : loadError ? (
           <div className="p-8 text-center text-red-600">
             {loadError}
@@ -277,14 +291,14 @@ const Index = () => {
                     <MenuItem key={item.id} item={item} />
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-4">Nenhum produto encontrado nesta categoria.</p>
+                  <p className="text-gray-500 text-center py-4">{t('common.search')}</p>
                 )}
               </div>
             </div>
           </>
         ) : (
           <div className="p-8 text-center text-gray-500">
-            Nenhuma categoria disponível no momento.
+            {t('common.loading')}
           </div>
         )}
       </div>

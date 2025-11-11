@@ -44,7 +44,9 @@
     "selectOptions": "Select Options",
     "required": "Required",
     "optional": "Optional",
-    "chooseOption": "Choose an option"
+    "chooseOption": "Choose an option",
+    "from": "from",
+    "mostOrdered": "Most Ordered"
   },
   "cart": {
     "title": "Shopping Cart",

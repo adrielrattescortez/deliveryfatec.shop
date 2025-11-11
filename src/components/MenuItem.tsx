@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
@@ -13,6 +14,7 @@ type MenuItemProps = {
 };
 
 const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage = false }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [hasOptions, setHasOptions] = useState(false);
@@ -70,7 +72,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
         {featured && item.popular && (
           <div className="mb-1">
             <span className="bg-amber-50 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-sm">
-              🔥 Mais pedido
+              🔥 {t('menu.mostOrdered')}
             </span>
           </div>
         )}
@@ -87,7 +89,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
         <div className="mb-2 flex flex-col items-start w-full">
           {hasOptions ? (
             <span className="text-xl font-bold text-green-600 mb-1 block">
-              a partir de R$ {item.price.toFixed(2)}
+              {t('menu.from')} R$ {item.price.toFixed(2)}
             </span>
           ) : (
             <span className="text-lg font-semibold text-gray-900 mb-1 block">
@@ -106,7 +108,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-5 w-5" />
-            <span>{hasOptions ? "Ver opções" : "Adicionar"}</span>
+            <span>{hasOptions ? t('menu.selectOptions') : t('menu.addToCart')}</span>
           </Button>
         </div>
 
