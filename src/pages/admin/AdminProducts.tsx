@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ type ProductWithOptions = ProductWithCategoryName & {
 };
 
 const AdminProducts = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<ProductWithOptions[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,7 +63,7 @@ const AdminProducts = () => {
       
       setProducts(productsWithOptions);
     } catch (error: any) {
-      toast.error('Falha ao buscar produtos: ' + error.message);
+      toast.error(t('common.error') + ': ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +84,7 @@ const AdminProducts = () => {
   };
 
   const handleDeleteProduct = async (productId: string, productName: string) => {
-    if (!window.confirm(`Tem certeza que deseja remover o produto "${productName}"?`)) return;
+    if (!window.confirm(t('admin.products_page.deleteConfirm'))) return;
 
     try {
       const { error } = await supabase
@@ -92,10 +94,10 @@ const AdminProducts = () => {
       
       if (error) throw error;
       
-      toast.success(`Produto "${productName}" removido.`);
+      toast.success(t('common.success'));
       fetchProducts();
     } catch (error: any) {
-      toast.error('Erro ao remover produto: ' + error.message);
+      toast.error(t('common.error') + ': ' + error.message);
     }
   };
 
@@ -114,22 +116,22 @@ const AdminProducts = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Gerenciar Produtos</h1>
-          <p className="text-gray-500">Adicione, edite ou remova produtos do seu cardápio.</p>
+          <h1 className="text-2xl font-bold">{t('admin.products_page.title')}</h1>
+          <p className="text-gray-500">{t('admin.products_page.title')}</p>
         </div>
         <Button onClick={handleAddProduct} className="w-full sm:w-auto">
-          <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Produto
+          <PlusCircle className="mr-2 h-4 w-4" /> {t('admin.products_page.addProduct')}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Produtos</CardTitle>
-          <CardDescription>Visualize e gerencie todos os produtos cadastrados.</CardDescription>
+          <CardTitle>{t('admin.products')}</CardTitle>
+          <CardDescription>{t('admin.products_page.title')}</CardDescription>
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input 
-              placeholder="Buscar produto por nome..." 
+              placeholder={t('common.search')} 
               className="pl-9 w-full sm:w-1/2 lg:w-1/3"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -138,13 +140,13 @@ const AdminProducts = () => {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Carregando produtos...</p>
+            <p>{t('common.loading')}</p>
           ) : products.length === 0 ? (
             <div className="text-center py-10">
               <PackageOpen className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-4 text-lg font-medium text-gray-600">Nenhum produto encontrado.</p>
+              <p className="mt-4 text-lg font-medium text-gray-600">{t('common.search')}</p>
               <p className="text-sm text-gray-500">
-                {searchTerm ? 'Tente um termo de busca diferente.' : 'Comece adicionando novos produtos.'}
+                {searchTerm ? t('common.search') : t('admin.products_page.addProduct')}
               </p>
             </div>
           ) : (
@@ -152,13 +154,13 @@ const AdminProducts = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[80px] hidden sm:table-cell">Imagem</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead className="text-right">Preço</TableHead>
-                    <TableHead className="hidden md:table-cell">Status</TableHead>
-                    <TableHead className="hidden md:table-cell">Variantes</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="w-[80px] hidden sm:table-cell">{t('common.image')}</TableHead>
+                    <TableHead>{t('common.name')}</TableHead>
+                    <TableHead>{t('common.category')}</TableHead>
+                    <TableHead className="text-right">{t('common.price')}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t('common.status')}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t('admin.products_page.variations')}</TableHead>
+                    <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -179,19 +181,19 @@ const AdminProducts = () => {
                         )}
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.categories?.name || <span className="text-gray-400 italic">Sem categoria</span>}</TableCell>
+                      <TableCell>{product.categories?.name || <span className="text-gray-400 italic">{t('common.category')}</span>}</TableCell>
                       <TableCell className="text-right">R$ {Number(product.price).toFixed(2)}</TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {product.popular && <Badge variant="outline" className="mr-1 border-green-500 text-green-600">Popular</Badge>}
-                        {product.vegetarian && <Badge variant="outline" className="border-blue-500 text-blue-600">Vegetariano</Badge>}
+                        {product.popular && <Badge variant="outline" className="mr-1 border-green-500 text-green-600">{t('menu.featured')}</Badge>}
+                        {product.vegetarian && <Badge variant="outline" className="border-blue-500 text-blue-600">{t('menu.featured')}</Badge>}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {product.product_options_count && product.product_options_count > 0 ? (
                           <Badge variant="outline" className="bg-amber-50 text-amber-800">
-                            {product.product_options_count} opções
+                            {product.product_options_count} {t('admin.products_page.productOptions')}
                           </Badge>
                         ) : (
-                          <span className="text-gray-400 italic">Sem variantes</span>
+                          <span className="text-gray-400 italic">{t('admin.products_page.variations')}</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

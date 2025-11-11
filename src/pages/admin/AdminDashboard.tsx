@@ -1,14 +1,17 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { ShoppingBag, Users, ArrowDown, ArrowUp, Package } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
+  
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-        <p className="text-gray-500">Visão geral da sua loja</p>
+        <h1 className="text-2xl font-bold mb-1">{t('admin.dashboard')}</h1>
+        <p className="text-gray-500">{t('admin.welcome')}</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -24,7 +27,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <h3 className="text-2xl font-bold">149</h3>
-            <p className="text-sm text-gray-500 mt-1">Pedidos totais</p>
+            <p className="text-sm text-gray-500 mt-1">{t('admin.totalOrders')}</p>
           </div>
         </Card>
         
@@ -40,7 +43,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <h3 className="text-2xl font-bold">57</h3>
-            <p className="text-sm text-gray-500 mt-1">Clientes ativos</p>
+            <p className="text-sm text-gray-500 mt-1">{t('admin.products')}</p>
           </div>
         </Card>
         
@@ -56,7 +59,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <h3 className="text-2xl font-bold">21</h3>
-            <p className="text-sm text-gray-500 mt-1">Produtos</p>
+            <p className="text-sm text-gray-500 mt-1">{t('admin.products')}</p>
           </div>
         </Card>
         
@@ -72,21 +75,21 @@ const AdminDashboard = () => {
               </div>
             </div>
             <h3 className="text-2xl font-bold">R$ 7.890</h3>
-            <p className="text-sm text-gray-500 mt-1">Receita mensal</p>
+            <p className="text-sm text-gray-500 mt-1">{t('admin.totalRevenue')}</p>
           </div>
         </Card>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Pedidos recentes</h3>
+          <h3 className="font-semibold mb-4">{t('admin.recentOrders')}</h3>
           
           <div className="space-y-4">
             {[1, 2, 3, 4].map((index) => (
               <div key={index} className="flex justify-between items-center pb-4 border-b last:border-0 last:pb-0">
                 <div>
-                  <p className="font-medium">Pedido #{1000 + index}</p>
-                  <p className="text-sm text-gray-500">Cliente {index === 1 ? 'novo' : 'recorrente'}</p>
+                  <p className="font-medium">{t('customer.orders.orderNumber')} #{1000 + index}</p>
+                  <p className="text-sm text-gray-500">{t('admin.orders_page.customer')} {index === 1 ? 'novo' : 'recorrente'}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-medium">R$ {(Math.random() * 100 + 20).toFixed(2)}</p>
@@ -98,7 +101,7 @@ const AdminDashboard = () => {
         </Card>
         
         <Card className="p-6">
-          <h3 className="font-semibold mb-4">Produtos populares</h3>
+          <h3 className="font-semibold mb-4">{t('menu.featured')}</h3>
           
           <div className="space-y-4">
             <div className="flex justify-between items-center pb-4 border-b">

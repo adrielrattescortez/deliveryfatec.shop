@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ const OrderStatusMap = {
 };
 
 const AdminOrders = () => {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<OrderDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -152,7 +154,7 @@ const AdminOrders = () => {
       
       setOrders(ordersWithProfiles as OrderDB[]);
     } catch (error: any) {
-      toast.error(`Erro ao buscar pedidos: ${error.message}`);
+      toast.error(t('common.error') + ': ' + error.message);
       console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
@@ -182,9 +184,9 @@ const AdminOrders = () => {
         });
       }
       
-      toast.success('Status do pedido atualizado com sucesso');
+      toast.success(t('common.success'));
     } catch (error: any) {
-      toast.error(`Erro ao atualizar status: ${error.message}`);
+      toast.error(t('common.error') + ': ' + error.message);
     }
   };
 
@@ -255,8 +257,8 @@ const AdminOrders = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Pedidos</h1>
-        <p className="text-gray-500">Gerencie os pedidos da sua loja</p>
+        <h1 className="text-2xl font-bold mb-1">{t('admin.orders')}</h1>
+        <p className="text-gray-500">{t('admin.orders_page.title')}</p>
       </div>
       
       <Card className="p-6">
@@ -264,7 +266,7 @@ const AdminOrders = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input 
-              placeholder="Buscar por ID do pedido..." 
+              placeholder={t('common.search')} 
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -277,16 +279,16 @@ const AdminOrders = () => {
               onValueChange={setStatusFilter}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filtrar por status" />
+                <SelectValue placeholder={t('common.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="awaiting_payment">Aguardando pagamento</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="processing">Em preparação</SelectItem>
-                <SelectItem value="delivering">Em entrega</SelectItem>
-                <SelectItem value="delivered">Entregue</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
+                <SelectItem value="all">{t('admin.orders_page.filterAll')}</SelectItem>
+                <SelectItem value="awaiting_payment">{t('customer.orders.statuses.awaiting_payment')}</SelectItem>
+                <SelectItem value="pending">{t('customer.orders.statuses.pending')}</SelectItem>
+                <SelectItem value="processing">{t('customer.orders.statuses.preparing')}</SelectItem>
+                <SelectItem value="delivering">{t('customer.orders.statuses.out_for_delivery')}</SelectItem>
+                <SelectItem value="delivered">{t('customer.orders.statuses.delivered')}</SelectItem>
+                <SelectItem value="cancelled">{t('customer.orders.statuses.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -294,25 +296,25 @@ const AdminOrders = () => {
         
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="py-8 text-center">Carregando pedidos...</div>
+            <div className="py-8 text-center">{t('common.loading')}</div>
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-10">
               <PackageOpen className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-4 text-lg font-medium text-gray-600">Nenhum pedido encontrado.</p>
+              <p className="mt-4 text-lg font-medium text-gray-600">{t('customer.orders.noOrders')}</p>
               <p className="text-sm text-gray-500">
-                {searchTerm || statusFilter !== 'all' ? 'Tente outros filtros.' : 'Não existem pedidos registrados.'}
+                {searchTerm || statusFilter !== 'all' ? t('common.search') : t('customer.orders.noOrders')}
               </p>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left pb-3 font-medium text-gray-500">Pedido</th>
-                  <th className="text-left pb-3 font-medium text-gray-500">Cliente</th>
-                  <th className="text-left pb-3 font-medium text-gray-500">Status</th>
-                  <th className="text-left pb-3 font-medium text-gray-500 hidden md:table-cell">Data</th>
-                  <th className="text-left pb-3 font-medium text-gray-500">Total</th>
-                  <th className="text-right pb-3 font-medium text-gray-500">Ações</th>
+                  <th className="text-left pb-3 font-medium text-gray-500">{t('customer.orders.orderNumber')}</th>
+                  <th className="text-left pb-3 font-medium text-gray-500">{t('admin.orders_page.customer')}</th>
+                  <th className="text-left pb-3 font-medium text-gray-500">{t('common.status')}</th>
+                  <th className="text-left pb-3 font-medium text-gray-500 hidden md:table-cell">{t('common.date')}</th>
+                  <th className="text-left pb-3 font-medium text-gray-500">{t('common.total')}</th>
+                  <th className="text-right pb-3 font-medium text-gray-500">{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -344,12 +346,12 @@ const AdminOrders = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="awaiting_payment">Aguardando pagamento</SelectItem>
-                              <SelectItem value="pending">Pendente</SelectItem>
-                              <SelectItem value="processing">Em preparação</SelectItem>
-                              <SelectItem value="delivering">Em entrega</SelectItem>
-                              <SelectItem value="delivered">Entregue</SelectItem>
-                              <SelectItem value="cancelled">Cancelado</SelectItem>
+                              <SelectItem value="awaiting_payment">{t('customer.orders.statuses.awaiting_payment')}</SelectItem>
+                              <SelectItem value="pending">{t('customer.orders.statuses.pending')}</SelectItem>
+                              <SelectItem value="processing">{t('customer.orders.statuses.preparing')}</SelectItem>
+                              <SelectItem value="delivering">{t('customer.orders.statuses.out_for_delivery')}</SelectItem>
+                              <SelectItem value="delivered">{t('customer.orders.statuses.delivered')}</SelectItem>
+                              <SelectItem value="cancelled">{t('customer.orders.statuses.cancelled')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

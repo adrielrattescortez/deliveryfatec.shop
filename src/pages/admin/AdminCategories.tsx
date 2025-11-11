@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 type CategoryWithProductCount = Tables<'categories'> & { product_count: number };
 
 const AdminCategories = () => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<CategoryWithProductCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -60,7 +62,7 @@ const AdminCategories = () => {
       );
       setCategories(categoriesWithCounts);
     } catch (error: any) {
-      toast.error('Falha ao buscar categorias: ' + error.message);
+      toast.error(t('common.error') + ': ' + error.message);
       console.error('Erro ao buscar categorias:', error);
     } finally {
       setIsLoading(false);
@@ -74,7 +76,7 @@ const AdminCategories = () => {
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim()) {
-      toast.error('Nome da categoria é obrigatório.');
+      toast.error(t('admin.categories_page.categoryName'));
       return;
     }
     try {
@@ -87,13 +89,13 @@ const AdminCategories = () => {
       if (error) throw error;
       
       if (data) {
-        toast.success(`Categoria "${data.name}" adicionada!`);
+        toast.success(t('common.success'));
         setNewCategoryName('');
         setNewCategoryDescription('');
         fetchCategories(); // Refresh list
       }
     } catch (error: any) {
-      toast.error('Erro ao adicionar categoria: ' + error.message);
+      toast.error(t('common.error') + ': ' + error.message);
       console.error('Erro ao adicionar categoria:', error);
     }
   };
@@ -102,11 +104,11 @@ const AdminCategories = () => {
     // Check if category has products
     const category = categories.find(c => c.id === categoryId);
     if (category && category.product_count > 0) {
-      toast.error(`Não é possível excluir "${categoryName}". Existem ${category.product_count} produtos associados a esta categoria. Remova ou reatribua os produtos primeiro.`);
+      toast.error(t('common.error'));
       return;
     }
 
-    if (!window.confirm(`Tem certeza que deseja remover a categoria "${categoryName}"?`)) return;
+    if (!window.confirm(t('admin.categories_page.deleteConfirm'))) return;
 
     try {
       const { error } = await supabase
@@ -134,7 +136,7 @@ const AdminCategories = () => {
   const handleUpdateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCategory || !editName.trim()) {
-      toast.error('Nome da categoria é obrigatório.');
+      toast.error(t('admin.categories_page.categoryName'));
       return;
     }
     try {
@@ -148,13 +150,13 @@ const AdminCategories = () => {
       if (error) throw error;
       
       if (data) {
-        toast.success(`Categoria "${data.name}" atualizada!`);
+        toast.success(t('common.success'));
         setEditingCategory(null);
         setIsDialogOpen(false);
         fetchCategories(); // Refresh list
       }
     } catch (error: any) {
-      toast.error('Erro ao atualizar categoria: ' + error.message);
+      toast.error(t('common.error') + ': ' + error.message);
       console.error('Erro ao atualizar categoria:', error);
     }
   };
@@ -163,26 +165,26 @@ const AdminCategories = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold mb-1">Categorias</h1>
-          <p className="text-gray-500">Gerencie as categorias de produtos</p>
+          <h1 className="text-2xl font-bold mb-1">{t('admin.categories')}</h1>
+          <p className="text-gray-500">{t('admin.categories_page.title')}</p>
         </div>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Nova Categoria</CardTitle>
-          <CardDescription>Adicione uma nova categoria para seus produtos.</CardDescription>
+          <CardTitle>{t('admin.categories_page.addCategory')}</CardTitle>
+          <CardDescription>{t('admin.categories_page.title')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAddCategory} className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1 space-y-2">
               <Input 
-                placeholder="Nome da categoria" 
+                placeholder={t('admin.categories_page.categoryName')} 
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
               />
               <Textarea
-                placeholder="Descrição (opcional)"
+                placeholder={t('common.description')}
                 value={newCategoryDescription}
                 onChange={(e) => setNewCategoryDescription(e.target.value)}
                 rows={2}
@@ -190,7 +192,7 @@ const AdminCategories = () => {
             </div>
             <Button type="submit" className="gap-2 mt-2 sm:mt-auto">
               <Plus className="h-4 w-4" />
-              Adicionar Categoria
+              {t('admin.categories_page.addCategory')}
             </Button>
           </form>
         </CardContent>
@@ -198,15 +200,15 @@ const AdminCategories = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Categorias Existentes</CardTitle>
+          <CardTitle>{t('admin.categories')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {isLoading ? (
             <div className="text-center py-4">
-              <p>Carregando categorias...</p>
+              <p>{t('common.loading')}</p>
             </div>
           ) : categories.length === 0 ? (
-            <p className="text-center text-gray-500 py-4">Nenhuma categoria cadastrada.</p>
+            <p className="text-center text-gray-500 py-4">{t('admin.categories_page.noCategories')}</p>
           ) : (
             categories.map((category) => (
               <div 
@@ -227,7 +229,7 @@ const AdminCategories = () => {
                     size="sm"
                     onClick={() => openEditModal(category)}
                   >
-                    <Edit className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Editar</span>
+                    <Edit className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">{t('common.edit')}</span>
                   </Button>
                   
                   <Button 
@@ -235,9 +237,9 @@ const AdminCategories = () => {
                     size="sm"
                     onClick={() => handleDeleteCategory(category.id, category.name)}
                     disabled={category.product_count > 0}
-                    title={category.product_count > 0 ? "Remova os produtos desta categoria primeiro" : "Excluir categoria"}
+                    title={category.product_count > 0 ? t('common.error') : t('common.delete')}
                   >
-                    <Trash className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Excluir</span>
+                    <Trash className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">{t('common.delete')}</span>
                   </Button>
                 </div>
               </div>
@@ -250,16 +252,16 @@ const AdminCategories = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Editar Categoria</DialogTitle>
+            <DialogTitle>{t('common.edit')} {t('common.category')}</DialogTitle>
             <DialogDescription>
-              Faça alterações na categoria "{editingCategory?.name}". Clique em salvar quando terminar.
+              {t('common.edit')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateCategory}>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-name" className="text-right">
-                  Nome
+                  {t('common.name')}
                 </Label>
                 <Input
                   id="edit-name"
@@ -270,7 +272,7 @@ const AdminCategories = () => {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-description" className="text-right">
-                  Descrição
+                  {t('common.description')}
                 </Label>
                 <Textarea
                   id="edit-description"
@@ -283,9 +285,9 @@ const AdminCategories = () => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">Cancelar</Button>
+                <Button type="button" variant="outline">{t('common.cancel')}</Button>
               </DialogClose>
-              <Button type="submit">Salvar Alterações</Button>
+              <Button type="submit">{t('common.save')}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
