@@ -10,18 +10,43 @@ const resources = {
   it: { translation: it },
 };
 
-// Função para obter idioma da URL
+// Função para obter idioma da URL - VERIFICA SE ESTÁ NO BROWSER
 const getLanguageFromURL = () => {
-  const params = new URLSearchParams(window.location.search);
-  const langParam = params.get('lang');
-  if (langParam && ['en', 'es', 'it'].includes(langParam)) {
-    return langParam;
+  // ✅ Verifica se window existe antes de acessar
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const langParam = params.get('lang');
+    if (langParam && ['en', 'es', 'it'].includes(langParam)) {
+      return langParam;
+    }
+  } catch (error) {
+    console.error('Error getting language from URL:', error);
   }
   return null;
 };
 
 // Prioridade: URL > localStorage > 'en'
-const initialLanguage = getLanguageFromURL() || localStorage.getItem('language') || 'en';
+// ✅ Verifica se localStorage existe antes de acessar
+const getInitialLanguage = () => {
+  const urlLang = getLanguageFromURL();
+  if (urlLang) return urlLang;
+  
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      return localStorage.getItem('language') || 'en';
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
+    }
+  }
+  
+  return 'en';
+};
+
+const initialLanguage = getInitialLanguage();
 
 i18n
   .use(initReactI18next)
@@ -35,13 +60,27 @@ i18n
   });
 
 // Sincronizar mudanças de idioma com URL e localStorage
+// ✅ Verifica se está no browser antes de acessar
 i18n.on('languageChanged', (lng) => {
-  localStorage.setItem('language', lng);
+  // Só acessa localStorage se estiver no browser
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem('language', lng);
+    } catch (error) {
+      console.error('Error saving language to localStorage:', error);
+    }
+  }
   
-  // Atualizar URL com o idioma
-  const url = new URL(window.location.href);
-  url.searchParams.set('lang', lng);
-  window.history.replaceState({}, '', url.toString());
+  // Só atualiza URL se estiver no browser
+  if (typeof window !== 'undefined') {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', lng);
+      window.history.replaceState({}, '', url.toString());
+    } catch (error) {
+      console.error('Error updating URL with language:', error);
+    }
+  }
 });
 
 export default i18n;
