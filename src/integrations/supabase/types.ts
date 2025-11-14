@@ -245,6 +245,9 @@ export type Database = {
           min_order: number
           name: string
           updated_at: string | null
+          enable_delivery: boolean | null
+          enable_pickup: boolean | null
+          currency: string | null
         }
         Insert: {
           address?: string | null
@@ -260,6 +263,9 @@ export type Database = {
           min_order?: number
           name: string
           updated_at?: string | null
+          enable_delivery?: boolean | null
+          enable_pickup?: boolean | null
+          currency?: string | null
         }
         Update: {
           address?: string | null
@@ -275,6 +281,9 @@ export type Database = {
           min_order?: number
           name?: string
           updated_at?: string | null
+          enable_delivery?: boolean | null
+          enable_pickup?: boolean | null
+          currency?: string | null
         }
         Relationships: []
       }

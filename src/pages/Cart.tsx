@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import Header from '@/components/Header';
 import { useCart } from '@/contexts/CartContext';
 import { useStore } from '@/contexts/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -100,7 +101,7 @@ const Cart = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-semibold text-lg">
-                          R$ {item.totalPrice.toFixed(2)}
+                          {formatCurrency(item.totalPrice, storeInfo.currency ?? 'EUR')}
                         </span>
                         <button
                           onClick={() => removeFromCart(item.id)}
@@ -126,16 +127,16 @@ const Cart = () => {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('cart.subtotal')}</span>
-                <span className="font-medium">R$ {subtotal.toFixed(2)}</span>
+                <span className="font-medium">{formatCurrency(subtotal, storeInfo.currency ?? 'EUR')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">{t('cart.deliveryFee')}</span>
-                <span className="font-medium">R$ {deliveryFee.toFixed(2)}</span>
+                <span className="font-medium">{formatCurrency(deliveryFee, storeInfo.currency ?? 'EUR')}</span>
               </div>
               <Separator className="my-3" />
               <div className="flex justify-between font-semibold text-lg">
                 <span>{t('cart.total')}</span>
-                <span>R$ {total.toFixed(2)}</span>
+                <span>{formatCurrency(total, storeInfo.currency ?? 'EUR')}</span>
               </div>
             </div>
             <Button 

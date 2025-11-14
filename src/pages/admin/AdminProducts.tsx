@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types'; 
 import SupabaseProductForm from '@/components/admin/SupabaseProductForm';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useStore } from '@/contexts/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 
 type ProductWithCategoryName = Tables<'products'> & {
   categories: { name: string } | null;
@@ -23,6 +25,7 @@ type ProductWithOptions = ProductWithCategoryName & {
 
 const AdminProducts = () => {
   const { t } = useTranslation();
+  const { storeInfo } = useStore();
   const [products, setProducts] = useState<ProductWithOptions[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -182,7 +185,7 @@ const AdminProducts = () => {
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.categories?.name || <span className="text-gray-400 italic">{t('common.category')}</span>}</TableCell>
-                      <TableCell className="text-right">R$ {Number(product.price).toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(Number(product.price), storeInfo.currency ?? 'EUR')}</TableCell>
                       <TableCell className="hidden md:table-cell">
                         {product.popular && <Badge variant="outline" className="mr-1 border-green-500 text-green-600">{t('menu.featured')}</Badge>}
                         {product.vegetarian && <Badge variant="outline" className="border-blue-500 text-blue-600">{t('menu.featured')}</Badge>}
@@ -213,7 +216,13 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog open={isFormOpen} onOpenChange={(open) => {
+        // Não fechar automaticamente - apenas quando explicitamente cancelado ou salvo via onCancel/onSuccess
+        // Isso previne o fechamento ao trocar de aba
+        if (!open) {
+          onFormCancel();
+        }
+      }}>
         <DialogContent className="max-w-2xl p-0 overflow-y-auto max-h-[90vh]">
           <SupabaseProductForm 
             product={editingProduct}

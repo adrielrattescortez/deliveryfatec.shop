@@ -54,6 +54,9 @@ export type StoreInfo = {
   address?: string | null; // Add address field (optional)
   lat?: number | null;     // Add latitude (optional)
   lng?: number | null;     // Add longitude (optional)
+  enableDelivery?: boolean;
+  enablePickup?: boolean;
+  currency?: 'EUR';
 };
 
 export type OrderStatus = 'pending' | 'processing' | 'delivering' | 'delivered' | 'cancelled';

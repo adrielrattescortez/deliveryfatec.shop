@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useStore } from '@/contexts/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 
 type DeliveryBannerProps = {
   threshold: number;
@@ -8,6 +10,7 @@ type DeliveryBannerProps = {
 
 const DeliveryBanner: React.FC<DeliveryBannerProps> = ({ threshold }) => {
   const { t } = useTranslation();
+  const { storeInfo } = useStore();
   
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-20">
@@ -16,7 +19,7 @@ const DeliveryBanner: React.FC<DeliveryBannerProps> = ({ threshold }) => {
           <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
         </svg>
         <span className="text-sm font-medium">{t('menu.freeDeliveryAbove')}</span>
-        <span className="text-sm ml-1">R$ {threshold.toFixed(2)}</span>
+        <span className="text-sm ml-1">{formatCurrency(threshold, storeInfo.currency ?? 'EUR')}</span>
       </div>
     </div>
   );

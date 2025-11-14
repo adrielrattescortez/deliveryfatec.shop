@@ -1,5 +1,8 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { useStore } from '@/contexts/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +32,8 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
   onClose,
   onUpdateStatus
 }) => {
+  const { t } = useTranslation();
+  const { storeInfo } = useStore();
   const formatDate = (dateString: string) => {
     try {
       const date = parseISO(dateString);
@@ -147,40 +152,40 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
         </head>
         <body>
           <div class="header">
-            <h1>PEDIDO #${order.id.slice(0, 8)}</h1>
-            <p><strong>Data:</strong> ${formatDate(order.created_at)}</p>
-            <span class="status">Status: ${OrderStatusMap[order.status as OrderStatus]?.label || 'Desconhecido'}</span>
+            <h1>${t('print.order')} #${order.id.slice(0, 8)}</h1>
+            <p><strong>${t('print.date')}:</strong> ${formatDate(order.created_at)}</p>
+            <span class="status">${t('print.status')}: ${t(`customer.orders.statuses.${order.status}`) || t('print.unknown')}</span>
           </div>
           
           <div class="section">
-            <h3>📞 Informações do Cliente</h3>
+            <h3>📞 ${t('print.customerInfo')}</h3>
             <div class="customer-info">
-              <p><strong>Nome:</strong> ${order.profiles?.name || 'Nome não disponível'}</p>
-              <p><strong>Telefone:</strong> ${order.profiles?.phone || 'Telefone não disponível'} (WhatsApp preferencial)</p>
+              <p><strong>${t('print.name')}:</strong> ${order.profiles?.name || t('print.nameNotAvailable')}</p>
+              <p><strong>${t('print.phone')}:</strong> ${order.profiles?.phone || t('print.phoneNotAvailable')} (WhatsApp preferencial)</p>
               ${order.profiles?.email_was_corrected && order.profiles?.technical_email ? `
-                <p><strong>Email do cliente:</strong> ${order.profiles.email}</p>
-                <p style="font-size: 11px; color: #666;"><strong>Email técnico:</strong> ${order.profiles.technical_email}</p>
-                <p style="font-size: 11px; color: #b45309;">⚠️ Email foi corrigido automaticamente</p>
+                <p><strong>${t('print.customerEmail')}:</strong> ${order.profiles.email}</p>
+                <p style="font-size: 11px; color: #666;"><strong>${t('print.technicalEmail')}:</strong> ${order.profiles.technical_email}</p>
+                <p style="font-size: 11px; color: #b45309;">⚠️ ${t('print.emailCorrected')}</p>
               ` : `
-                <p><strong>Email:</strong> ${order.profiles?.email || 'Email não disponível'}</p>
+                <p><strong>${t('print.email')}:</strong> ${order.profiles?.email || t('print.emailNotAvailable')}</p>
               `}
             </div>
           </div>
           
           <div class="section">
-            <h3>🏠 Endereço de Entrega</h3>
+            <h3>🏠 ${t('print.deliveryAddress')}</h3>
             <div class="address-info">
               ${order.address && typeof order.address === 'object' ? `
-                <p><strong>Rua:</strong> ${order.address.street || ''}, ${order.address.number || ''}</p>
-                <p><strong>Bairro:</strong> ${order.address.neighborhood || ''}</p>
-                <p><strong>Cidade:</strong> ${order.address.city || ''}, ${order.address.state || ''}</p>
-                <p><strong>CEP:</strong> ${order.address.zipCode || ''}</p>
-              ` : '<p>Endereço não disponível</p>'}
+                <p><strong>${t('print.street')}:</strong> ${order.address.street || ''}, ${order.address.number || ''}</p>
+                <p><strong>${t('print.neighborhood')}:</strong> ${order.address.neighborhood || ''}</p>
+                <p><strong>${t('print.city')}:</strong> ${order.address.city || ''}, ${order.address.state || ''}</p>
+                <p><strong>${t('print.zipCode')}:</strong> ${order.address.zipCode || ''}</p>
+              ` : `<p>${t('print.addressNotAvailable')}</p>`}
             </div>
           </div>
           
           <div class="section">
-            <h3>🍽️ Itens do Pedido</h3>
+            <h3>🍽️ ${t('print.orderItems')}</h3>
             ${Array.isArray(order.items) ? order.items.map(item => {
               const quantity = typeof item.quantity === "number" ? item.quantity : 1;
               const name = typeof item.name === "string" ? item.name : "Item";
@@ -189,7 +194,7 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
               
               return `
                 <div class="item">
-                  <div class="item-header">${quantity}x ${name} - R$ ${Number(totalPrice).toFixed(2)}</div>
+                  <div class="item-header">${quantity}x ${name} - ${formatCurrency(Number(totalPrice), storeInfo.currency ?? 'EUR')}</div>
                   ${Object.entries(selectedOptions).length > 0 ? `
                     <div class="item-options">
                       ${Object.entries(selectedOptions).map(([key, value]) => 
@@ -199,13 +204,13 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                   ` : ''}
                 </div>
               `;
-            }).join('') : '<p>Nenhum item encontrado</p>'}
+            }).join('') : `<p>${t('print.noItems')}</p>`}
           </div>
           
           <div class="total-section">
-            <p><strong>Subtotal:</strong> R$ ${(order.total - order.delivery_fee).toFixed(2)}</p>
-            <p><strong>Taxa de Entrega:</strong> R$ ${order.delivery_fee.toFixed(2)}</p>
-            <p class="total">TOTAL: R$ ${order.total.toFixed(2)}</p>
+            <p><strong>${t('print.subtotal')}:</strong> ${formatCurrency(Number(order.total - order.delivery_fee), storeInfo.currency ?? 'EUR')}</p>
+            <p><strong>${t('print.deliveryFee')}:</strong> ${formatCurrency(Number(order.delivery_fee), storeInfo.currency ?? 'EUR')}</p>
+            <p class="total">${t('print.total')}: ${formatCurrency(Number(order.total), storeInfo.currency ?? 'EUR')}</p>
           </div>
         </body>
       </html>
@@ -344,12 +349,12 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                           {quantity}x {name}
                         </span>
                         <div className="text-right">
-                          <div className="text-sm text-gray-600">
-                            R$ {(total / quantity).toFixed(2)} cada
-                          </div>
-                          <div className="font-medium">
-                            Total: R$ {Number(total).toFixed(2)}
-                          </div>
+                  <div className="text-sm text-gray-600">
+                    {formatCurrency(total / quantity, storeInfo.currency ?? 'EUR')} cada
+                  </div>
+                  <div className="font-medium">
+                    Total: {formatCurrency(Number(total), storeInfo.currency ?? 'EUR')}
+                  </div>
                         </div>
                       </div>
                       {selectedOptions && Object.entries(selectedOptions).length > 0 && (
@@ -376,15 +381,15 @@ const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
           <div className="border-t pt-4">
             <div className="flex justify-between mb-2">
               <span>Subtotal</span>
-              <span>R$ {(order.total - order.delivery_fee).toFixed(2)}</span>
+              <span>{formatCurrency(order.total - order.delivery_fee, storeInfo.currency ?? 'EUR')}</span>
             </div>
             <div className="flex justify-between mb-2">
               <span>Taxa de Entrega</span>
-              <span>R$ {order.delivery_fee.toFixed(2)}</span>
+              <span>{formatCurrency(order.delivery_fee, storeInfo.currency ?? 'EUR')}</span>
             </div>
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
-              <span>R$ {order.total.toFixed(2)}</span>
+              <span>{formatCurrency(order.total, storeInfo.currency ?? 'EUR')}</span>
             </div>
           </div>
           

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
+import { useStore } from '@/contexts/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { FoodItem } from '@/types/product';
 
@@ -17,6 +19,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { storeInfo } = useStore();
   const [hasOptions, setHasOptions] = useState(false);
 
   useEffect(() => {
@@ -89,11 +92,11 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, featured = false, hideImage =
         <div className="mb-2 flex flex-col items-start w-full">
           {hasOptions ? (
             <span className="text-xl font-bold text-green-600 mb-1 block">
-              {t('menu.from')} R$ {item.price.toFixed(2)}
+              {t('menu.from')} {formatCurrency(item.price, storeInfo.currency ?? 'EUR')}
             </span>
           ) : (
             <span className="text-lg font-semibold text-gray-900 mb-1 block">
-              R$ {item.price.toFixed(2)}
+              {formatCurrency(item.price, storeInfo.currency ?? 'EUR')}
             </span>
           )}
 

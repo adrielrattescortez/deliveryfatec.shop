@@ -244,11 +244,11 @@ const Index = () => {
           name={storeInfo.name}
           cuisine={storeInfo.cuisineType}
           distance="2,0 km"
-          minOrder={storeInfo.minOrder.toFixed(2).replace('.', ',')}
+          minOrder={formatCurrency(storeInfo.minOrder, storeInfo.currency ?? 'EUR')}
           rating={4.8}
           reviews={1400}
           deliveryTime="55-65 min"
-          deliveryFee={storeInfo.deliveryFee.toFixed(2).replace('.', ',')}
+          deliveryFee={formatCurrency(storeInfo.deliveryFee, storeInfo.currency ?? 'EUR')}
         />
       </div>
       
@@ -309,4 +309,6 @@ const Index = () => {
 };
 
 export default Index;
+
+import { formatCurrency } from '@/lib/utils';
 

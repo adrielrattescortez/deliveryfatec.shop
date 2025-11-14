@@ -12,6 +12,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useStore } from '@/contexts/StoreContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/lib/utils';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -246,7 +247,7 @@ const ProductDetail = () => {
           </p>
         )}
         <p className="mt-2 font-semibold text-xl">
-          A partir de R$ {product.price.toFixed(2)}
+          A partir de {formatCurrency(product.price, storeInfo.currency ?? 'EUR')}
         </p>
       </div>
       
@@ -338,7 +339,7 @@ const ProductDetail = () => {
                           </div>
                           <span className={`${variation.price > 0 ? "text-red-700 font-bold" : "text-gray-500 font-medium"}`}>
                             {variation.price > 0
-                              ? <>+ R$ {variation.price.toFixed(2)}</>
+                              ? <>+ {formatCurrency(variation.price, storeInfo.currency ?? 'EUR')}</>
                               : <>Grátis</>
                             }
                           </span>
@@ -392,7 +393,7 @@ const ProductDetail = () => {
           <ShoppingCart className="h-6 w-6" />
           Adicionar
           <span className="ml-1 font-bold">
-            R$ {calculateTotalPrice().toFixed(2)}
+            {formatCurrency(calculateTotalPrice(), storeInfo.currency ?? 'EUR')}
           </span>
         </Button>
       </div>
