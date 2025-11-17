@@ -21,7 +21,10 @@ const defaultStoreInfo: StoreInfo = {
   cuisineType: "Culinária Árabe",
   address: "",
   lat: null,
-  lng: null
+  lng: null,
+  enableDelivery: true,
+  enablePickup: true,
+  currency: 'EUR'
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -45,7 +48,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .maybeSingle();
 
       if (data) {
-        setStoreInfo({
+        let loaded: StoreInfo = {
           name: data.name || "",
           description: data.description || "",
           logo: data.logo || "",
@@ -55,8 +58,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           cuisineType: data.cuisine_type || "",
           address: data.address || "",
           lat: typeof data.lat === "number" ? data.lat : null,
-          lng: typeof data.lng === "number" ? data.lng : null
-        });
+          lng: typeof data.lng === "number" ? data.lng : null,
+          // Carregar do Supabase (fonte de verdade)
+          enableDelivery: typeof data.enable_delivery === 'boolean' ? data.enable_delivery : true,
+          enablePickup: typeof data.enable_pickup === 'boolean' ? data.enable_pickup : true,
+          currency: data.currency === 'EUR' ? 'EUR' : 'EUR',
+        };
+
+        setStoreInfo(loaded);
       } else if (error) {
         console.error("Erro ao buscar informações da loja:", error);
         setStoreInfo(defaultStoreInfo);
@@ -85,6 +94,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (info.address !== undefined) mappedInfo.address = info.address;
       if (info.lat !== undefined) mappedInfo.lat = info.lat;
       if (info.lng !== undefined) mappedInfo.lng = info.lng;
+      // Adicionar novos campos para salvar no Supabase
+      if (info.enableDelivery !== undefined) mappedInfo.enable_delivery = info.enableDelivery;
+      if (info.enablePickup !== undefined) mappedInfo.enable_pickup = info.enablePickup;
+      if (info.currency !== undefined) mappedInfo.currency = info.currency;
+
+      // Atualizar imediatamente no estado
+      setStoreInfo(prev => ({ ...prev, ...info }));
 
       const { error } = await supabase
         .from('store_info')

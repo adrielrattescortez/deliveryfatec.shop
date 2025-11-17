@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 type RestaurantInfoProps = {
   name: string;
@@ -22,11 +23,13 @@ const RestaurantInfo: React.FC<RestaurantInfoProps> = ({
   deliveryTime,
   deliveryFee,
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="pt-12 pb-4 px-4">
       <h1 className="text-xl font-bold text-center mb-1">{name}</h1>
       <p className="text-sm text-gray-500 text-center mb-3">{cuisine} ({distance})</p>
-      <p className="text-sm text-gray-500 text-center">Min R$ {minOrder}</p>
+  <p className="text-sm text-gray-500 text-center">Min {minOrder}</p>
 
       <div className="mt-4 flex flex-col gap-3">
         <div className="flex items-center justify-between px-3 py-4 border-b">
@@ -37,7 +40,7 @@ const RestaurantInfo: React.FC<RestaurantInfoProps> = ({
               </svg>
               <span className="font-semibold">{rating}</span>
             </span>
-            <span className="text-sm text-gray-500 ml-1">({reviews} avaliações)</span>
+            <span className="text-sm text-gray-500 ml-1">({reviews} {t('menu.reviews')})</span>
           </div>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400">
             <polyline points="9 18 15 12 9 6"></polyline>
@@ -46,10 +49,10 @@ const RestaurantInfo: React.FC<RestaurantInfoProps> = ({
 
         <div className="flex justify-between px-3 py-4">
           <div>
-            <p className="text-gray-700">Padrão</p>
+            <p className="text-gray-700">{t('menu.standard')}</p>
             <p className="text-sm text-gray-500">{deliveryTime}</p>
           </div>
-          <p className="text-gray-700">R$ {deliveryFee}</p>
+          <p className="text-gray-700">{deliveryFee}</p>
         </div>
       </div>
     </div>

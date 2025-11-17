@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,15 +11,16 @@ import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { Eye, EyeOff } from 'lucide-react';
 
-const formSchema = z.object({
-  email: z.string().email({ message: 'Email inválido' }),
-  password: z.string().min(1, { message: 'Senha é obrigatória' }),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
 const Login = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  
+  const formSchema = z.object({
+    email: z.string().email({ message: t('auth.invalidEmail') }),
+    password: z.string().min(1, { message: t('auth.passwordRequired') }),
+  });
+  
+  type FormData = z.infer<typeof formSchema>;
   const { login, loading, currentUser } = useUser();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,11 +46,11 @@ const Login = () => {
       setIsSubmitting(true);
       console.log("Attempting login with:", data.email);
       await login(data.email, data.password);
-      toast.success('Login realizado com sucesso!');
+      toast.success(t('auth.loginSuccess'));
       // Não é necessário navegar aqui, o useEffect cuidará do redirecionamento
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || 'Falha no login. Verifique suas credenciais.');
+      toast.error(error.message || t('auth.loginError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -58,8 +60,8 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-2">
       <div className="form-container">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-800">Bem-vindo de volta!</h1>
-          <p className="text-gray-600 mt-2">Acesse sua conta para continuar.</p>
+          <h1 className="text-3xl font-extrabold text-gray-800">{t('auth.welcomeBack')}</h1>
+          <p className="text-gray-600 mt-2">{t('auth.accessAccount')}</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -69,9 +71,9 @@ const Login = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('auth.email')}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="seu@email.com" {...field} className="h-12 md:h-14 text-base" />
+                    <Input type="email" placeholder={t('auth.enterEmail')} {...field} className="h-12 md:h-14 text-base" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -83,12 +85,12 @@ const Login = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <FormLabel>{t('auth.password')}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Sua senha"
+                        placeholder={t('auth.yourPassword')}
                         {...field}
                         className="h-12 md:h-14 text-base pr-12"
                       />
@@ -107,15 +109,15 @@ const Login = () => {
               )}
             />
             <Button type="submit" className="w-full big-btn mt-2" disabled={loading || isSubmitting} size="lg">
-              {isSubmitting ? 'Entrando...' : 'Entrar'}
+              {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </Button>
           </form>
         </Form>
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Não tem uma conta?{' '}
+            {t('auth.noAccount')}{' '}
             <Link to="/register" className="font-medium text-primary hover:underline">
-              Cadastre-se
+              {t('auth.signUp')}
             </Link>
           </p>
         </div>

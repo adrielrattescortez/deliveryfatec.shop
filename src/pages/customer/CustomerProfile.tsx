@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,22 +11,24 @@ import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/integrations/supabase/client';
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: 'Nome é obrigatório' }),
-  email: z.string().email({ message: 'Email inválido' }),
-  phone: z.string().min(8, { message: 'Telefone inválido' }),
-  street: z.string().min(3, { message: 'Endereço é obrigatório' }),
-  number: z.string().min(1, { message: 'Número é obrigatório' }),
-  neighborhood: z.string().min(2, { message: 'Bairro é obrigatório' }),
-  city: z.string().min(2, { message: 'Cidade é obrigatória' }),
-  state: z.string().min(2, { message: 'Estado é obrigatório' }),
-  zipCode: z.string().min(5, { message: 'CEP é obrigatório' }),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
 const CustomerProfile = () => {
+  const { t, i18n } = useTranslation();
   const { currentUser } = useUser();
+  
+  // Recriar formSchema quando o idioma mudar
+  const formSchema = useMemo(() => z.object({
+    name: z.string().min(2, { message: t('auth.nameMinLength') }),
+    email: z.string().email({ message: t('auth.invalidEmail') }),
+    phone: z.string().min(8, { message: t('customer.phone') }),
+    street: z.string().min(3, { message: t('customer.street') }),
+    number: z.string().min(1, { message: t('customer.number') }),
+    neighborhood: z.string().min(2, { message: t('customer.neighborhood') }),
+    city: z.string().min(2, { message: t('checkout.city') }),
+    state: z.string().min(2, { message: t('checkout.state') }),
+    zipCode: z.string().min(5, { message: t('customer.zipCode') }),
+  }), [t, i18n.language]);
+  
+  type FormData = z.infer<typeof formSchema>;
   
   const defaultValues = {
     name: currentUser?.name || '',
@@ -43,6 +46,11 @@ const CustomerProfile = () => {
     resolver: zodResolver(formSchema),
     defaultValues,
   });
+  
+  // Atualizar o resolver quando o schema mudar
+  React.useEffect(() => {
+    form.clearErrors();
+  }, [i18n.language, form]);
   
   const onSubmit = async (data: FormData) => {
     if (!currentUser) return;
@@ -67,31 +75,31 @@ const CustomerProfile = () => {
       
       if (error) throw error;
       
-      toast.success('Perfil atualizado com sucesso!');
+      toast.success(t('customer.profileUpdated'));
     } catch (error: any) {
-      toast.error(`Erro ao atualizar perfil: ${error.message}`);
+      toast.error(`${t('customer.profileUpdateError')}: ${error.message}`);
     }
   };
   
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Editar Perfil</h1>
-        <p className="text-gray-500">Atualize seus dados pessoais e de entrega</p>
+        <h1 className="text-2xl font-bold mb-1">{t('customer.editProfile')}</h1>
+        <p className="text-gray-500">{t('customer.updatePersonalData')}</p>
       </div>
       
       <Card className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Dados Pessoais</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('customer.personalInformation')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome completo</FormLabel>
+                      <FormLabel>{t('customer.fullName')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -105,7 +113,7 @@ const CustomerProfile = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('customer.email')}</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
                       </FormControl>
@@ -119,7 +127,7 @@ const CustomerProfile = () => {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Telefone</FormLabel>
+                      <FormLabel>{t('customer.phone')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -131,14 +139,14 @@ const CustomerProfile = () => {
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold mb-4">Endereço</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('customer.address')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="zipCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>CEP</FormLabel>
+                      <FormLabel>{t('customer.zipCode')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -152,7 +160,7 @@ const CustomerProfile = () => {
                   name="street"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Rua</FormLabel>
+                      <FormLabel>{t('customer.street')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -166,7 +174,7 @@ const CustomerProfile = () => {
                   name="number"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número</FormLabel>
+                      <FormLabel>{t('customer.number')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -180,7 +188,7 @@ const CustomerProfile = () => {
                   name="neighborhood"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Bairro</FormLabel>
+                      <FormLabel>{t('customer.neighborhood')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -194,7 +202,7 @@ const CustomerProfile = () => {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cidade</FormLabel>
+                      <FormLabel>{t('checkout.city')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -208,7 +216,7 @@ const CustomerProfile = () => {
                   name="state"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Estado</FormLabel>
+                      <FormLabel>{t('checkout.state')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -221,7 +229,7 @@ const CustomerProfile = () => {
             
             <div className="flex justify-end">
               <Button type="submit">
-                Salvar alterações
+                {t('customer.saveChanges')}
               </Button>
             </div>
           </form>

@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandItem, CommandGroup } from "@/components/ui/command";
 import { supabase } from "@/integrations/supabase/client";
 import { Search } from "lucide-react";
+import { useStore } from "@/contexts/StoreContext";
+import { formatCurrency } from "@/lib/utils";
 
 type Product = {
   id: string;
@@ -24,6 +26,7 @@ export default function ProductSearchDialog({ open, setOpen }: ProductSearchDial
   const [results, setResults] = useState<Product[]>([]);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+  const { storeInfo } = useStore();
 
   // Função para buscar produtos do supabase
   const searchProducts = async (term: string) => {
@@ -91,7 +94,7 @@ export default function ProductSearchDialog({ open, setOpen }: ProductSearchDial
                 <div>
                   <div className="font-medium">{product.name}</div>
                   <div className="text-xs text-gray-500">
-                    {product.categories?.name || "Sem categoria"} &middot; R$ {Number(product.price).toFixed(2)}
+                    {product.categories?.name || "Sem categoria"} &middot; {formatCurrency(Number(product.price), storeInfo.currency ?? 'EUR')}
                   </div>
                 </div>
               </CommandItem>

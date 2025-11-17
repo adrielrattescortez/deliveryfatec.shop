@@ -72,6 +72,38 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
     },
   });
 
+  const draftKey = product?.id ? `productFormDraft:${product.id}` : 'productFormDraft:new';
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        form.reset({
+          name: draft.name ?? '',
+          description: draft.description ?? '',
+          price: typeof draft.price === 'number' ? draft.price : 0,
+          category_id: draft.category_id ?? '',
+          image_url: draft.image_url ?? '',
+          popular: !!draft.popular,
+          vegetarian: !!draft.vegetarian,
+          product_options: Array.isArray(draft.product_options) ? draft.product_options : [],
+        });
+      }
+    } catch {}
+    // eslint-disable-next-line
+  }, [product?.id]);
+
+  useEffect(() => {
+    const sub = form.watch((values) => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(values));
+      } catch {}
+    });
+    return () => sub.unsubscribe();
+    // eslint-disable-next-line
+  }, [draftKey]);
+
   // Setup for dynamic field arrays for product options and variations
   const { fields: optionsFields, append: appendOption, remove: removeOption } = 
     useFieldArray({
@@ -352,6 +384,7 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
       }
       
       toast.success(`Produto "${formData.name}" ${product ? 'atualizado' : 'criado'} com sucesso!`);
+      try { localStorage.removeItem(draftKey); } catch {}
       onSuccess();
     } catch (error: any) {
       console.error('Error saving product:', error);
@@ -366,7 +399,7 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>{product ? 'Editar Produto' : 'Adicionar Novo Produto'}</CardTitle>
-          <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Fechar formulário">
+          <Button variant="ghost" size="icon" onClick={() => { try { localStorage.removeItem(draftKey); } catch {}; onCancel(); }} aria-label="Fechar formulário">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -411,7 +444,7 @@ const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSu
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preço (R$)</FormLabel>
+                    <FormLabel>Preço</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" placeholder="9.99" {...field} 
                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}

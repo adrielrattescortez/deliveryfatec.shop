@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { useStore } from '@/contexts/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +14,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 const CustomerOrders = () => {
   const { currentUser } = useUser();
   const { t } = useTranslation();
+  const { storeInfo } = useStore();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -132,8 +135,8 @@ const CustomerOrders = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-1">Meus Pedidos</h1>
-        <p className="text-gray-500">Acompanhe seus pedidos e histórico</p>
+        <h1 className="text-2xl font-bold mb-1">{t('customer.orders.title')}</h1>
+        <p className="text-gray-500">{t('customer.myOrders')}</p>
       </div>
       
       <div className="space-y-4">
@@ -165,12 +168,12 @@ const CustomerOrders = () => {
                   
                   <div className="text-right">
                     <p className="text-sm text-gray-500">{t('cart.total')}</p>
-                    <p className="font-semibold">R$ {order.total.toFixed(2)}</p>
+                    <p className="font-semibold">{formatCurrency(order.total, storeInfo.currency ?? 'EUR')}</p>
                   </div>
                 </div>
                 
                 <div className="border-t pt-4 mt-2">
-                  <h4 className="text-sm font-medium mb-2">Itens do pedido:</h4>
+                  <h4 className="text-sm font-medium mb-2">{t('customer.orders.orderItems')}</h4>
                   <ul className="space-y-1">
                     {orderItems.slice(0, 3).map((item, index) => (
                       <li key={index} className="text-sm flex justify-between">
@@ -179,7 +182,7 @@ const CustomerOrders = () => {
                     ))}
                     {orderItems.length > 3 && (
                       <li className="text-sm text-gray-500">
-                        ...e {orderItems.length - 3} mais
+                        {t('customer.orders.andMore', { count: orderItems.length - 3 })}
                       </li>
                     )}
                   </ul>
@@ -208,7 +211,7 @@ const CustomerOrders = () => {
           })
         ) : (
           <Card className="p-8 text-center">
-            <p className="text-gray-500">Você ainda não fez nenhum pedido</p>
+            <p className="text-gray-500">{t('customer.orders.noOrders')}</p>
           </Card>
         )}
       </div>
@@ -219,39 +222,39 @@ const CustomerOrders = () => {
             <div className="space-y-6 p-4">
               <div className="flex justify-between items-center border-b pb-4">
                 <div>
-                  <h2 className="text-xl font-bold">Pedido #{selectedOrder.id.slice(0, 8)}</h2>
-                  <p className="text-sm text-gray-500">Realizado em {formatDate(selectedOrder.created_at)}</p>
+                  <h2 className="text-xl font-bold">{t('customer.orders.orderNumber')} #{selectedOrder.id.slice(0, 8)}</h2>
+                  <p className="text-sm text-gray-500">{t('customer.orders.createdAt')} {formatDate(selectedOrder.created_at)}</p>
                 </div>
                 <Badge 
                   variant="default" 
                   className={`${statusMap[selectedOrder.status]?.color || 'bg-gray-500'} hover:${statusMap[selectedOrder.status]?.color || 'bg-gray-500'}`}
                 >
-                  {statusMap[selectedOrder.status]?.label || 'Status desconhecido'}
+                  {statusMap[selectedOrder.status]?.label || t('customer.orders.status')}
                 </Badge>
               </div>
               
               <div>
-                <h3 className="font-medium mb-2">Endereço de Entrega</h3>
+                <h3 className="font-medium mb-2">{t('customer.orders.deliveryAddress')}</h3>
                 <div className="bg-gray-50 p-3 rounded-md">
                   {selectedOrder.address && (
                     <>
                       <p>{selectedOrder.address.street}, {selectedOrder.address.number}</p>
                       <p>{selectedOrder.address.neighborhood}</p>
                       <p>{selectedOrder.address.city}, {selectedOrder.address.state}</p>
-                      <p>{selectedOrder.address.zipCode}</p>
+                      <p>{t('checkout.zipCode')}: {selectedOrder.address.zipCode}</p>
                     </>
                   )}
                 </div>
               </div>
               
               <div>
-                <h3 className="font-medium mb-2">Itens do Pedido</h3>
+                <h3 className="font-medium mb-2">{t('customer.orders.orderItems')}</h3>
                 <div className="space-y-2">
                   {Array.isArray(selectedOrder.items) && selectedOrder.items.map((item, index) => (
                     <div key={index} className="bg-gray-50 p-3 rounded-md">
                       <div className="flex justify-between">
                         <span className="font-medium">{item.quantity}x {item.name}</span>
-                        <span>R$ {item.total_price ? item.total_price.toFixed(2) : (item.unit_price * item.quantity).toFixed(2)}</span>
+                        <span>{formatCurrency(item.total_price ? item.total_price : (item.unit_price * item.quantity), storeInfo.currency ?? 'EUR')}</span>
                       </div>
                       {item.selected_options && Object.entries(item.selected_options).length > 0 && (
                         <div className="mt-1 text-sm text-gray-600">
@@ -270,16 +273,16 @@ const CustomerOrders = () => {
               
               <div className="border-t pt-4">
                 <div className="flex justify-between mb-2">
-                  <span>Subtotal</span>
-                  <span>R$ {selectedOrder.subtotal.toFixed(2)}</span>
+                  <span>{t('cart.subtotal')}</span>
+                  <span>{formatCurrency(selectedOrder.subtotal, storeInfo.currency ?? 'EUR')}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span>Taxa de Entrega</span>
-                  <span>R$ {selectedOrder.delivery_fee.toFixed(2)}</span>
+                  <span>{t('cart.deliveryFee')}</span>
+                  <span>{formatCurrency(selectedOrder.delivery_fee, storeInfo.currency ?? 'EUR')}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>R$ {selectedOrder.total.toFixed(2)}</span>
+                  <span>{t('cart.total')}</span>
+                  <span>{formatCurrency(selectedOrder.total, storeInfo.currency ?? 'EUR')}</span>
                 </div>
               </div>
               
@@ -289,7 +292,7 @@ const CustomerOrders = () => {
                     className="w-full" 
                     onClick={() => handleCompletePayment(selectedOrder)}
                   >
-                    Completar Pagamento
+                    {t('customer.orders.completePayment')}
                   </Button>
                 </div>
               )}

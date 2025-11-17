@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Eye, PackageOpen, Printer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useStore } from '@/contexts/StoreContext';
+import { formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { OrderDB, OrderStatus, OrderItem } from '@/types/product';
 import { format, parseISO } from 'date-fns';
@@ -23,6 +25,7 @@ const OrderStatusMap = {
 
 const AdminOrders = () => {
   const { t } = useTranslation();
+  const { storeInfo } = useStore();
   const [orders, setOrders] = useState<OrderDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -216,14 +219,14 @@ const AdminOrders = () => {
         ${itemsArray.map((item: any) => `
           <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd;">
             <p><strong>${item.quantity || 1}x ${item.name || 'Item'}</strong></p>
-            <p>Total: R$ ${(item.totalPrice || 0).toFixed(2)}</p>
+            <p>Total: ${formatCurrency(Number(item.totalPrice || 0), storeInfo.currency ?? 'EUR')}</p>
           </div>
         `).join('')}
         
         <div style="border-top: 2px solid #000; padding-top: 10px; margin-top: 20px;">
-          <p><strong>Subtotal: R$ ${(order.total - order.delivery_fee).toFixed(2)}</strong></p>
-          <p><strong>Taxa de Entrega: R$ ${order.delivery_fee.toFixed(2)}</strong></p>
-          <p><strong>Total: R$ ${order.total.toFixed(2)}</strong></p>
+          <p><strong>Subtotal: ${formatCurrency(Number(order.total - order.delivery_fee), storeInfo.currency ?? 'EUR')}</strong></p>
+          <p><strong>Taxa de Entrega: ${formatCurrency(Number(order.delivery_fee), storeInfo.currency ?? 'EUR')}</strong></p>
+          <p><strong>Total: ${formatCurrency(Number(order.total), storeInfo.currency ?? 'EUR')}</strong></p>
         </div>
       </div>
     `;
@@ -360,7 +363,7 @@ const AdminOrders = () => {
                         {order.created_at ? format(parseISO(order.created_at), 'dd/MM/yyyy HH:mm') : 'Data inválida'}
                       </td>
                       <td className="py-4 font-medium">
-                        R$ {order.total.toFixed(2)}
+                        {formatCurrency(order.total, storeInfo.currency ?? 'EUR')}
                       </td>
                       <td className="py-4 text-right">
                         <div className="flex gap-2 justify-end">
